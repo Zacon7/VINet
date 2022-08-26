@@ -12,7 +12,9 @@ import os
 from utils import tools
 from utils import se3qua
 
-import FlowNetC
+# Replace flownetc with flownets
+#import FlowNetC
+import networks.FlowNetS as FlowNetS
 
 
 from PIL import Image
@@ -169,16 +171,21 @@ class Vinet(nn.Module):
             print('No checkpoint')
 
         
-        self.flownet_c = FlowNetC.FlowNetC(batchNorm=False)
-        self.flownet_c.load_state_dict(checkpoint['state_dict'])
-        self.flownet_c.cuda()
+        #self.flownet_c = FlowNetC.FlowNetC(batchNorm=False)
+        #self.flownet_c.load_state_dict(checkpoint['state_dict'])
+        #self.flownet_c.cuda()
+
+        self.flownet_s = FlowNetS.FlowNetS(batchNorm=False)
+        #self.flownet_s.load_state_dict(checkpoint['state_dict'])
+        self.flownet_s.cuda()
 
     def forward(self, image, imu, xyzQ):
         batch_size, timesteps, C, H, W = image.size()
         
         ## Input1: Feed image pairs to FlownetC
         c_in = image.view(batch_size, timesteps * C, H, W)
-        c_out = self.flownet_c(c_in)
+        c_out = self.flownet_s(c_in)
+        #c_out = self.flownet_c(c_in)
         #print('c_out', c_out.shape)
         
         ## Input2: Feed IMU records to LSTM

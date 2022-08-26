@@ -2,6 +2,12 @@
 
 > This is a non-official PyTorch implementation of VINet[1] forked from [https://github.com/HTLife/VINet](https://github.com/HTLife/VINet). Aim of this repository is to update version written by HTLife and improve the documentation. Project is under construction.
 
+
+# Memo:
+
+- VINet uses FlownetS (simple) instead of FlownetC (correlation)
+- Update later to RAFT if there is time: [https://arxiv.org/pdf/2003.12039.pdf](https://arxiv.org/pdf/2003.12039.pdf) [https://github.com/pytorch/vision/tree/main/references/optical_flow](https://github.com/pytorch/vision/tree/main/references/optical_flow)
+
 # Installation
 
 It's recommand to use docker image to run this project.

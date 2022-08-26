@@ -7,7 +7,8 @@ import sys
 sys.path
 sys.path.append('/notebooks/Sophus/py')
 
-from sophus import *
+# PALAUTA TÄMÄ, VOI AIHEUTTAA ERRORIA?!?
+#from sophus import *
 import numpy as np
 from sympy import *
 
