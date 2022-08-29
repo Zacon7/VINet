@@ -1,0 +1,7 @@
+# Requirements to run VINet
+# To-do: Add other requirement check that all are really needed
+eigency
+cmake
+pybind11
+pyquaternion
+sympy

@@ -10,6 +10,26 @@
 
 # Installation
 
+#### First install pip requirements
+
+```
+pip install -r requirements.txt
+```
+
+#### Then install PySophus
+
+```
+git clone https://github.com/arntanguy/PySophus.git
+cd PySophus
+git submodule init
+git submodule update
+python setup.py build_ext --inplace
+# Add PySophus to bashrc
+export PYTHONPATH="$PYTHONPATH:<path to PySophus>"
+```
+
+# Docker Installation
+
 It's recommand to use docker image to run this project.
 [Docker image installation guide](https://github.com/HTLife/VINet/wiki/Installation-Guide)
 
