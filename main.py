@@ -1,4 +1,5 @@
 # python2.7
+import os
 import torch 
 import torch.nn as nn
 from torch.autograd import Variable
@@ -8,13 +9,13 @@ import torch.optim as optim
 
 from tensorboardX import SummaryWriter
 
-import os
-from utils import tools
-from utils import se3qua
+
+
 
 # Replace flownetc with flownets
-#import FlowNetC
 import networks.FlowNetS as FlowNetS
+from utils import tools
+from utils import se3qua
 
 
 from PIL import Image
@@ -35,7 +36,7 @@ class MyDataset:
         self.base_dir = base_dir
         self.sequence = sequence
         self.base_path_img = self.base_dir + self.sequence + '/cam0/data/'
-        
+        print("\nRead images from folder:", self.base_path_img, "\n")
         
         self.data_files = os.listdir(self.base_dir + self.sequence + '/cam0/data/')
         self.data_files.sort()

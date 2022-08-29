@@ -2,16 +2,13 @@
 SE3 quaternion tools
 """
 
-
 import sys
 sys.path
-sys.path.append('/notebooks/Sophus/py')
+#sys.path.append('/notebooks/Sophus/py') <- Is this really needed??
 
-# PALAUTA TÄMÄ, VOI AIHEUTTAA ERRORIA?!?
-#from sophus import *
+from sophus import *
 import numpy as np
 from sympy import *
-
 from pyquaternion import Quaternion as Qua
 
 
