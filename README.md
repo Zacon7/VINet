@@ -10,13 +10,13 @@
 
 # Installation
 
-#### First install pip requirements
+First install pip requirements
 
 ```
 pip install -r requirements.txt
 ```
 
-#### Then install PySophus
+Then install PySophus
 
 ```
 git clone https://github.com/arntanguy/PySophus.git
@@ -28,12 +28,14 @@ python setup.py build_ext --inplace
 export PYTHONPATH="$PYTHONPATH:<path to PySophus>"
 ```
 
-# Docker Installation
+# Download EuRoC MAV Dataset
 
-It's recommand to use docker image to run this project.
-[Docker image installation guide](https://github.com/HTLife/VINet/wiki/Installation-Guide)
+[EuRoC MAV Dataset Homepage](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets#available_data)
 
-# Training
+
+[EuRoC MAV Dataset download page](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/)
+
+# Training (update training process!!)
 Log into container
 ```bash
 sudo docker exec -it vinet bash
