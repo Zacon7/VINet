@@ -47,11 +47,11 @@ class MyDataset:
         
         ## relative camera pose
         #ORIGINAL: self.trajectory_relative = self.read_R6TrajFile('/vicon0/sampled_relative_R6.csv')
-        self.trajectory_relative = self.read_R6TrajFile('/vicon0/delete.csv')
+        self.trajectory_relative = self.read_R6TrajFile('/vicon0/data.csv')
         
         ## abosolute camera pose (global)
         #ORIGINAL: self.trajectory_abs = self.readTrajectoryFile('/vicon0/sampled.csv')
-        self.trajectory_abs = self.readTrajectoryFile('/vicon0/delete.csv')
+        self.trajectory_abs = self.readTrajectoryFile('/state_groundtruth_estimate0/data.csv')
 
         ## imu
         self.imu = self.readIMU_File('/imu0/data.csv')
@@ -62,6 +62,7 @@ class MyDataset:
         traj = []
         with open(self.base_dir + self.sequence + path) as csvfile:
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+            next(spamreader, None) #Skip headers
             for row in spamreader:
                 parsed = [float(row[1]), float(row[2]), float(row[3]), 
                           float(row[4]), float(row[5]), float(row[6]), float(row[7])]
@@ -73,6 +74,7 @@ class MyDataset:
         traj = []
         with open(self.base_dir + self.sequence + path) as csvfile:
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+            next(spamreader, None) #Skip headers
             for row in spamreader:
                 parsed = [float(row[1]), float(row[2]), float(row[3]), 
                           float(row[4]), float(row[5]), float(row[6])]
@@ -199,30 +201,29 @@ class Vinet(nn.Module):
         c_in = image.view(batch_size, timesteps * C, H, W)
         print(c_in.shape)
         c_out = self.flownet_sd(c_in)
-        #c_out = self.flownet_c(c_in)
         print('\nFlownet output shape:', c_out.shape)
+        #r_in = c_out.view(batch_size, timesteps, -1)
+        r_in = c_out.view(batch_size, 1, -1)
+        print('Flownet output after flattening:', r_in.shape)
         
-        ## Input2: Feed IMU records to LSTM
+        ## Input2: Feed IMU records to small LSTM
         imu_out, (imu_n, imu_c) = self.rnnIMU(imu)
         imu_out = imu_out[:, -1, :]
         #print('imu_out', imu_out.shape)
         imu_out = imu_out.unsqueeze(1)
-        #print('imu_out', imu_out.shape)
+        print('\nIMU small LSTM output shame:', imu_out.shape)
         
-        
-        ## Combine the output of input1 and 2 and feed it to LSTM
-        #r_in = c_out.view(batch_size, timesteps, -1)
-        r_in = c_out.view(batch_size, 1, -1)
-        #print('r_in', r_in.shape)
-        
-
+        ## Combine the output of Flownet and IMU LSTM and xyzQ
         cat_out = torch.cat((r_in, imu_out), 2)#1 1 49158
         cat_out = torch.cat((cat_out, xyzQ), 2)#1 1 49165
+        print('\nShape after Flownet, IMU LSTM and xyzQ concatenation:', cat_out.shape)
         
+        ## Run main LSTM and flatten output
         r_out, (h_n, h_c) = self.rnn(cat_out)
         l_out1 = self.linear1(r_out[:,-1,:])
         l_out2 = self.linear2(l_out1)
         #l_out3 = self.linear3(l_out2)
+        print('\nDeep learning network output shape:', l_out2.shape)
 
         return l_out2
     
@@ -240,7 +241,7 @@ def train():
 
     # Update mydataset path
     #ORIGINAL: mydataset = MyDataset('/notebooks/EuRoC_modify/', 'V1_01_easy')
-    mydataset = MyDataset('../Data/', 'V1_01_easy/mav0')
+    mydataset = MyDataset('../data/', 'V1_01_easy/mav0')
 
     #criterion  = nn.MSELoss()
     criterion  = nn.L1Loss(size_average=False)
@@ -269,21 +270,28 @@ def train():
                     abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda()) 
                 
                 ## Forward
+                print("\nStart forward pass")
                 output = model(data, data_imu, abs_traj_input)
                 
                 ## Accumulate pose
+                print("\nAccumulate pose")
                 numarr = output.data.cpu().numpy()
-                
+                print(1)
                 abs_traj = se3qua.accu(abs_traj, numarr)
-                
+                print(2)
                 abs_traj_input = np.expand_dims(abs_traj, axis=0)
+                print(3)
                 abs_traj_input = np.expand_dims(abs_traj_input, axis=0)
+                print(4)
                 abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda()) 
+                print(5)
                 
                 ## (F2F loss) + (Global pose loss)
                 ## Global pose: Full concatenated pose relative to the start of the sequence
+                print("\nCalculate loss")
                 loss = criterion(output, target_f2f) + criterion(abs_traj_input, target_global)
 
+                print("\nDo back propagation and optimize step")
                 loss.backward()
                 optimizer.step()
 

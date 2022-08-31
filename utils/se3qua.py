@@ -5,11 +5,19 @@ SE3 quaternion tools
 import sys
 sys.path
 #sys.path.append('/notebooks/Sophus/py') <- Is this really needed??
+sys.path.append('../PySophus/py')
 
 from sophus import *
+#from sophus import se3 as Se3
 import numpy as np
 from sympy import *
 from pyquaternion import Quaternion as Qua
+
+# Remove when everything works
+with open("imported_packages.txt", "w") as f:
+    for i in sys.modules:
+        f.write(i)
+        f.write("\n")
 
 
 ## xyz quaternion ==> se(3)
@@ -79,16 +87,26 @@ def accu(lastxyzQuaternion, new_se3r6):
     lastxyzQuaternion: np.array([x y z ww wx wy wz])
     new_se3r6: np.array([se3R^6])
     """
-    new_se3r6 = Matrix(np.transpose(new_se3r6)) #numpy array to sympy matrix
-    M_SE3 = Se3.exp(new_se3r6)
+    #new_se3r6 = Matrix(np.transpose(new_se3r6)) #numpy array to sympy matrix
+    print("lastxyzQuaternion:", lastxyzQuaternion)
+    print("new_se3r6:", new_se3r6[0])
+    #print(type(new_se3r6))
+    #M_SE3 = Se3.exp(new_se3r6)
+    M_SE3 = SE3.exp(new_se3r6)
+    print("Accu1")
+    #print(type(M_SE3.dtype))
     M_SE3 = M_SE3.matrix()
-    
+    print("Accu2")
     last = xyzQ2se3(lastxyzQuaternion)
+    print("Accu3")
     last = Matrix(np.transpose(last))
+    print("Accu4")
     M_SE3_last = Se3.exp(last)
+    print("Accu5")
     M_SE3_last = M_SE3_last.matrix()
-    
+    print("Accu6")
     accu = M_SE3_last * M_SE3
+    print("Accu7")
     xyzq = SE3toXYZQuaternion(accu)
     
     return xyzq

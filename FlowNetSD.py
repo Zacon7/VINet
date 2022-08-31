@@ -82,7 +82,11 @@ class FlowNetSD(nn.Module):
         print("out_conv5:", out_conv5.shape)
         out_conv6 = self.conv6_1(self.conv6(out_conv5))
         print("out_conv6:", out_conv6.shape)
-
+       
+        return out_conv6
+       
+        ## --- TÄSTÄ POIKKI ETTÄ SAADAAN SHAPE BATCH x 1024 x 6 x 8 ----
+'''
         flow6       = self.predict_flow6(out_conv6)
         print("flow6:", flow6.shape)
         flow6_up    = self.upsampled_flow6_to_5(flow6)
@@ -94,10 +98,6 @@ class FlowNetSD(nn.Module):
         concat5 = torch.cat((out_conv5,out_deconv5,flow6_up),1)
         print("concat5:", concat5.shape)
 
-        return concat5
-
-        ## --- TÄSTÄ POIKKI ETTÄ SAADAAN SHAPE BATCH x 1024 x 6 x 8 ----
-'''
         out_interconv5 = self.inter_conv5(concat5)
         print("out_interconv5:", out_interconv5.shape)
         flow5       = self.predict_flow5(out_interconv5)
