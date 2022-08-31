@@ -49,6 +49,12 @@ Save and unzip datafiles to this folder
 [EuRoC MAV Dataset download page](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/)
 
 
+# Download pretrained Flownet model
+
+(Download trained Flownet2-SD)[https://drive.google.com/file/d/1QW03eyYG_vD-dT-Mx4wopYvtPu_msTKn/view?usp=sharing]
+
+(Link to Nvidia Flownet repository)[https://github.com/NVIDIA/flownet2-pytorch]
+
 # Training (update training process!!)
 Log into container
 ```bash
