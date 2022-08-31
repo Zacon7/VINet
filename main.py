@@ -6,14 +6,15 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import torch.utils.data
 import torch.optim as optim
+import cv2
 
 from tensorboardX import SummaryWriter
 
 
-
-
 # Replace flownetc with flownets
-import networks.FlowNetS as FlowNetS
+#import networks.FlowNetSD as FlowNetSD
+import FlowNetSD
+#import networks.FlowNetC as FlowNetC
 from utils import tools
 from utils import se3qua
 
@@ -21,7 +22,6 @@ from utils import se3qua
 from PIL import Image
 import numpy as np
 
-import flowlib
 
 from PIL import Image
 
@@ -35,18 +35,24 @@ class MyDataset:
     def __init__(self, base_dir, sequence):
         self.base_dir = base_dir
         self.sequence = sequence
+
+        ## Set images folder
         self.base_path_img = self.base_dir + self.sequence + '/cam0/data/'
-        print("\nRead images from folder:", self.base_path_img, "\n")
+        print("\nRead images from folder:", self.base_path_img)
         
+        # Get all image names without image paths    
         self.data_files = os.listdir(self.base_dir + self.sequence + '/cam0/data/')
         self.data_files.sort()
+        print("Found {} images from the images folder.\n".format(len(self.data_files)))
         
         ## relative camera pose
-        self.trajectory_relative = self.read_R6TrajFile('/vicon0/sampled_relative_R6.csv')
+        #ORIGINAL: self.trajectory_relative = self.read_R6TrajFile('/vicon0/sampled_relative_R6.csv')
+        self.trajectory_relative = self.read_R6TrajFile('/vicon0/delete.csv')
         
         ## abosolute camera pose (global)
-        self.trajectory_abs = self.readTrajectoryFile('/vicon0/sampled.csv')
-        
+        #ORIGINAL: self.trajectory_abs = self.readTrajectoryFile('/vicon0/sampled.csv')
+        self.trajectory_abs = self.readTrajectoryFile('/vicon0/delete.csv')
+
         ## imu
         self.imu = self.readIMU_File('/imu0/data.csv')
         
@@ -108,6 +114,10 @@ class MyDataset:
             x_data_np_1 = np.array(Image.open(self.base_path_img + self.data_files[idx + i]))
             x_data_np_2 = np.array(Image.open(self.base_path_img + self.data_files[idx+1 + i]))
 
+            # Resize images
+            x_data_np_1 = cv2.resize(x_data_np_1, dsize=(512, 384), interpolation=cv2.INTER_CUBIC)
+            x_data_np_2 = cv2.resize(x_data_np_2, dsize=(512, 384), interpolation=cv2.INTER_CUBIC)
+
             ## 3 channels
             x_data_np_1 = np.array([x_data_np_1, x_data_np_1, x_data_np_1])
             x_data_np_2 = np.array([x_data_np_2, x_data_np_2, x_data_np_2])
@@ -162,12 +172,14 @@ class Vinet(nn.Module):
         
         
         checkpoint = None
-        checkpoint_pytorch = '/notebooks/model/FlowNet2-C_checkpoint.pth.tar'
-        #checkpoint_pytorch = '/notebooks/data/model/FlowNet2-SD_checkpoint.pth.tar'
+        #checkpoint_pytorch = '/notebooks/model/FlowNet2-C_checkpoint.pth.tar'
+        #checkpoint_pytorch = '/FlowNet2-S_checkpoint.pth.tar'
+        checkpoint_pytorch = 'FlowNet2-SD_checkpoint.pth.tar'
         if os.path.isfile(checkpoint_pytorch):
             checkpoint = torch.load(checkpoint_pytorch,\
                                 map_location=lambda storage, loc: storage.cuda(0))
             best_err = checkpoint['best_EPE']
+            print('\nFLownet checkpoint loaded!"')
         else:
             print('No checkpoint')
 
@@ -176,18 +188,19 @@ class Vinet(nn.Module):
         #self.flownet_c.load_state_dict(checkpoint['state_dict'])
         #self.flownet_c.cuda()
 
-        self.flownet_s = FlowNetS.FlowNetS(batchNorm=False)
-        #self.flownet_s.load_state_dict(checkpoint['state_dict'])
-        self.flownet_s.cuda()
+        self.flownet_sd = FlowNetSD.FlowNetSD(batchNorm=False)
+        self.flownet_sd.load_state_dict(checkpoint['state_dict'])
+        self.flownet_sd.cuda()
 
     def forward(self, image, imu, xyzQ):
         batch_size, timesteps, C, H, W = image.size()
         
         ## Input1: Feed image pairs to FlownetC
         c_in = image.view(batch_size, timesteps * C, H, W)
-        c_out = self.flownet_s(c_in)
+        print(c_in.shape)
+        c_out = self.flownet_sd(c_in)
         #c_out = self.flownet_c(c_in)
-        #print('c_out', c_out.shape)
+        print('\nFlownet output shape:', c_out.shape)
         
         ## Input2: Feed IMU records to LSTM
         imu_out, (imu_n, imu_c) = self.rnnIMU(imu)
@@ -214,20 +227,8 @@ class Vinet(nn.Module):
         return l_out2
     
     
-def model_out_to_flow_png(output):
-    out_np = output[0].data.cpu().numpy()
-
-    #https://gitorchub.com/DediGadot/PatchBatch/blob/master/flowlib.py
-    out_np = np.squeeze(out_np)
-    out_np = np.moveaxis(out_np,0, -1)
-
-    im_arr = flowlib.flow_to_image(out_np)
-    im = Image.fromarray(im_arr)
-    im.save('test.png')
-
-
 def train():
-    epoch = 10
+    epoch = 5
     batch = 1
     model = Vinet()
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -237,7 +238,10 @@ def train():
     
     model.train()
 
-    mydataset = MyDataset('/notebooks/EuRoC_modify/', 'V1_01_easy')
+    # Update mydataset path
+    #ORIGINAL: mydataset = MyDataset('/notebooks/EuRoC_modify/', 'V1_01_easy')
+    mydataset = MyDataset('../Data/', 'V1_01_easy/mav0')
+
     #criterion  = nn.MSELoss()
     criterion  = nn.L1Loss(size_average=False)
     

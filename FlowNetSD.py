@@ -1,3 +1,6 @@
+# FlowNetSD used in the VINNet
+
+
 import torch
 import torch.nn as nn
 from torch.nn import init
@@ -5,7 +8,7 @@ from torch.nn import init
 import math
 import numpy as np
 
-from .submodules import *
+from submodules import *
 'Parameter count = 45,371,666'
 
 class FlowNetSD(nn.Module):
@@ -91,8 +94,10 @@ class FlowNetSD(nn.Module):
         concat5 = torch.cat((out_conv5,out_deconv5,flow6_up),1)
         print("concat5:", concat5.shape)
 
-        ## --- TÄSTÄ POIKKI ETTÄ SAADAAN SHAPE BATCH x 1024 x 6 x 8 ----
+        return concat5
 
+        ## --- TÄSTÄ POIKKI ETTÄ SAADAAN SHAPE BATCH x 1024 x 6 x 8 ----
+'''
         out_interconv5 = self.inter_conv5(concat5)
         print("out_interconv5:", out_interconv5.shape)
         flow5       = self.predict_flow5(out_interconv5)
@@ -138,3 +143,4 @@ class FlowNetSD(nn.Module):
             return flow2,flow3,flow4,flow5,flow6
         else:
             return flow2,
+'''

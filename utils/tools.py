@@ -27,11 +27,13 @@ class TimerBlock:
         print(("{}".format(title)))
 
     def __enter__(self):
-        self.start = time.clock()
+        #OLD: self.start = time.clock()
+        self.start = time.perf_counter()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.end = time.clock()
+        #OLD: self.end = time.clock()
+        self.end = time.perf_counter()
         self.interval = self.end - self.start
 
         if exc_type is not None:
@@ -41,7 +43,8 @@ class TimerBlock:
 
 
     def log(self, string):
-        duration = time.clock() - self.start
+        #OLD: duration = time.clock() - self.start
+        duration = time.perf_counter() - self.start
         units = 's'
         if duration > 60:
             duration = duration / 60.
@@ -55,7 +58,8 @@ class TimerBlock:
         fid.close()
 
     def avg(self):
-        duration = time.clock() - self.start
+        #OLD: duration = time.clock() - self.start
+        duration = time.perf_counter() - self.start
         if self.count == 0:
             return duration
         else:

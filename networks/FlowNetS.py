@@ -15,6 +15,7 @@ from .submodules import *
 class FlowNetS(nn.Module):
     #def __init__(self, args, input_channels = 12, batchNorm=True):
     def __init__(self, input_channels = 12, batchNorm=True):
+    #def __init__(self, input_channels = 6, batchNorm=True):
     #def __init__(self, batchNorm=True, div_flow = 20):
         super(FlowNetS,self).__init__()
 
