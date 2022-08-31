@@ -13,3 +13,4 @@ pyquaternion
 sympy
 cython
 tensorboardX
+opencv-python
