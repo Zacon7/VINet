@@ -1,7 +1,15 @@
-# Requirements to run VINet
-# To-do: Add other requirement check that all are really needed
+# Install Pytorch for Cuda 11.6
+--extra-index-url https://download.pytorch.org/whl/cu116
+torch
+torchvision
+torchaudio
+
+
+# Install other Python packages
 eigency
 cmake
 pybind11
 pyquaternion
 sympy
+cython
+tensorboardX
