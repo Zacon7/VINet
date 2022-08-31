@@ -40,12 +40,12 @@ example: export PYTHONPATH="$PYTHONPATH:/Desktop/Fusion-Project/PySophus"
 cd ..
 mkdir data
 cd data
+```
 
-# Save and unzip datafiles to this folder
+Save and unzip datafiles to this folder
 [EuRoC MAV Dataset Homepage](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets#available_data)
 [EuRoC MAV Dataset download page](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/)
 
-```
 
 # Training (update training process!!)
 Log into container
