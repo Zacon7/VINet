@@ -51,9 +51,11 @@ Save and unzip datafiles to this folder
 
 # Download pretrained Flownet model
 
-(Download trained Flownet2-SD)[https://drive.google.com/file/d/1QW03eyYG_vD-dT-Mx4wopYvtPu_msTKn/view?usp=sharing]
+Download trained model to same location as where you have the VINNet main.py file
 
-(Link to Nvidia Flownet repository)[https://github.com/NVIDIA/flownet2-pytorch]
+[Download trained Flownet2-SD](https://drive.google.com/file/d/1QW03eyYG_vD-dT-Mx4wopYvtPu_msTKn/view?usp=sharing)
+
+[Link to Nvidia Flownet repository](https://github.com/NVIDIA/flownet2-pytorch)
 
 # Training (update training process!!)
 Log into container
