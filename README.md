@@ -13,19 +13,24 @@
 First install pip requirements
 
 ```
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 Then install PySophus
 
 ```
+# Download and install PySophus
 git clone https://github.com/arntanguy/PySophus.git
 cd PySophus
 git submodule init
 git submodule update
-python setup.py build_ext --inplace
-# Add PySophus to bashrc
+python3 setup.py build_ext --inplace
+
+
+# Add PySophus to bashrc or to Python path
 export PYTHONPATH="$PYTHONPATH:<path to PySophus>"
+
+example: export PYTHONPATH="$PYTHONPATH:/Desktop/Fusion-Project/PySophus"
 ```
 
 # Download EuRoC MAV Dataset
