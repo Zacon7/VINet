@@ -24,6 +24,7 @@ import sys
 import errno
 from subprocess import call
 import csv
+from tqdm import tqdm
 
 import decimal
 
@@ -32,6 +33,7 @@ sys.path.append('../')
 print(sys.path)
 from sophus.se3 import Se3
 from sophus.so3 import So3
+from sophus.quaternion import Quaternion as Qua
 
 
 import quaternion
@@ -78,25 +80,15 @@ def xyzQuaternion2se3_(arr):
     x,y,z,ww,wx,wy,wz = arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6]
     trans = Matrix([x,y,z])
     ww, wx, wy, wz = normalize(ww, wx, wy, wz)
-        
+    
     q_real = ww
     q_img = Matrix([wx, wy, wz])
 
-    print()
-    print("q_real:", q_real)
-    print("q_img:", q_img)
-    print()
-
-    q = Quaternion(q_real,q_img) # TAMA AIHEITTAA ERRORIN, MIKSI???? 
-    # VAATII 4 INPUTTIA, MITA NE OVAT???
-
-    print("\n IF YOU SEE THIS PRINT, THEN PROBLEM IS SOLVED!!\n")
-
+    q = Qua(q_real,q_img) 
     R = So3(q)
-    
     RT = Se3(R, trans)
-    #print(RT.log())
-    numpy_vec = np.array(RT.log()).astype(float)  # SE3 to se3
+
+    numpy_vec = np.array(RT.log()).astype(float)  # SE3 to se3 KAATUU TAHAN!!!!
     
     return np.concatenate(numpy_vec)
 
@@ -119,8 +111,7 @@ def _get_filenames_and_classes(dataset_dir):
     
     # Calculate relative pose
     trajectory_relative = []
-    for i in range(len(trajectory_abs)-1):
-        print(i)
+    for i in tqdm(range(len(trajectory_abs)-1)):
         #timestamp [ns],p_RS_R_x [m],p_RS_R_y [m],p_RS_R_z [m],q_RS_w [],q_RS_x [],q_RS_y [],q_RS_z []
         timestamp = trajectory_abs[i+1][0]
         X, Y, Z = np.array(trajectory_abs[i+1][1:4]).astype(float) - np.array(trajectory_abs[i][1:4]).astype(float)
@@ -146,7 +137,6 @@ def _get_filenames_and_classes(dataset_dir):
     
     file_path = dataset_dir + '/vicon0/sampled_relative_R6.csv'
     print("Write to file:", file_path)
-    print("Number of rows:", len(trajectory_relative))
     with open(file_path, 'w+') as f:
         tmpStr = ",".join(trajectory_abs[0])
         f.write(tmpStr + '\n')        
@@ -159,7 +149,8 @@ def _get_filenames_and_classes(dataset_dir):
             r5 = float_to_str(trajectory_relative[i][4])
             r6 = float_to_str(trajectory_relative[i][5])
             tmpStr = str(trajectory_relative[i][0]) + ',' + r1 + ',' + r2 + ',' + r3 + ',' + r4 + ',' + r5 + ',' + r6
-            f.write(tmpStr + '\n')        
+            f.write(tmpStr + '\n')
+    print("Number of rows written:", len(trajectory_relative))     
     f.close()
     return
                 
@@ -171,19 +162,23 @@ def main():
     #_get_filenames_and_classes('/notebooks/EuRoC_modify/V2_01_easy')
     #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_02_medium')
     #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_03_difficult')
-    print(1)
+    print("\nStart process V1_01_easy")
     _get_filenames_and_classes('../../data/V1_01_easy/mav0')
-    print(2)
+
+    print("\nStart process V1_02_medium")
     _get_filenames_and_classes('../../data/V1_02_medium/mav0')
-    print(3)
+
+    print("\nStart process V1_03_difficult")
     _get_filenames_and_classes('../../data/V1_03_difficult/mav0')
-    print(4)
+
+    print("\nStart process V2_01_easy")
     _get_filenames_and_classes('../../data/V2_01_easy/mav0')
-    print(5)
+
+    print("\nStart process V2_02_medium")
     _get_filenames_and_classes('../../data/V2_02_medium/mav0')
-    print(6)
+
+    print("\nStart process V2_03_difficult")
     _get_filenames_and_classes('../../data/V2_03_difficult/mav0')
-    print(7)
 
 if __name__ == "__main__":
     main()

@@ -9,6 +9,8 @@ sys.path
 
 from sophus.se3 import Se3
 from sophus.so3 import So3
+from sophus.quaternion import Quaternion as SophusQuaternion
+
 #from sophus import se3 as Se3
 import numpy as np
 from sympy import *
@@ -48,9 +50,8 @@ def xyzQuaternion2se3_(arr):
         
     q_real = ww
     q_img = Matrix([wx, wy, wz])
-    print("\nq_real:", q_real)
-    print("\nq_img:", q_img)
-    q = Quaternion(q_real,q_img) # KAATUU TAHAN!!!!!
+
+    q = SophusQuaternion(q_real,q_img)
     R = So3(q) # So3
     
     RT = Se3(R, trans) #Se3
@@ -90,28 +91,16 @@ def accu(lastxyzQuaternion, new_se3r6):
     new_se3r6: np.array([se3R^6])
     """
     new_se3r6 = Matrix(np.transpose(new_se3r6)) #numpy array to sympy matrix
-    print("\nlastxyzQuaternion:", lastxyzQuaternion)
-    #print(type(new_se3r6))
-    #M_SE3 = Se3.exp(new_se3r6)
     M_SE3 = Se3.exp(new_se3r6)
-    print("\nM_SE3:", M_SE3)
-    #print(type(M_SE3.dtype))
     M_SE3 = M_SE3.matrix()
-    print("\nM_SE3:", M_SE3)
 
-    print("Accu2")
-    print("lastxyzQuaternion:", lastxyzQuaternion)
-    last = xyzQ2se3(lastxyzQuaternion) ## KAATUU TASSA RIVISSA!
-
-    print("Accu3")
+    last = xyzQ2se3(lastxyzQuaternion)
     last = Matrix(np.transpose(last))
-    print("Accu4")
+
     M_SE3_last = Se3.exp(last)
-    print("Accu5")
     M_SE3_last = M_SE3_last.matrix()
-    print("Accu6")
     accu = M_SE3_last * M_SE3
-    print("Accu7")
+    
     xyzq = SE3toXYZQuaternion(accu)
     
     return xyzq

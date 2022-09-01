@@ -20,6 +20,7 @@ import numpy as np
 
 import csv
 import time
+from tqdm import tqdm
 
 
 
@@ -39,7 +40,6 @@ class MyDataset:
         print("Found {} images from the images folder.\n".format(len(self.data_files)))
         
         ## relative camera pose
-        #ORIGINAL: self.trajectory_relative = self.read_R6TrajFile('/vicon0/sampled_relative_R6.csv')
         self.trajectory_relative = self.read_R6TrajFile('/vicon0/sampled_relative_R6.csv')
         
         ## abosolute camera pose (global)
@@ -188,37 +188,36 @@ class Vinet(nn.Module):
         
         ## Input1: Feed image pairs to FlownetC
         c_in = image.view(batch_size, timesteps * C, H, W)
-        print(c_in.shape)
         c_out = self.flownet_sd(c_in)
-        print('\nFlownet output shape:', c_out.shape)
+        #print('\nFlownet output shape:', c_out.shape)
         #r_in = c_out.view(batch_size, timesteps, -1)
         r_in = c_out.view(batch_size, 1, -1)
-        print('Flownet output after flattening:', r_in.shape)
+        #print('Flownet output after flattening:', r_in.shape)
         
         ## Input2: Feed IMU records to small LSTM
         imu_out, (imu_n, imu_c) = self.rnnIMU(imu)
         imu_out = imu_out[:, -1, :]
         #print('imu_out', imu_out.shape)
         imu_out = imu_out.unsqueeze(1)
-        print('\nIMU small LSTM output shame:', imu_out.shape)
+        #print('\nIMU small LSTM output shame:', imu_out.shape)
         
         ## Combine the output of Flownet and IMU LSTM and xyzQ
         cat_out = torch.cat((r_in, imu_out), 2)#1 1 49158
         cat_out = torch.cat((cat_out, xyzQ), 2)#1 1 49165
-        print('\nShape after Flownet, IMU LSTM and xyzQ concatenation:', cat_out.shape)
+        #print('\nShape after Flownet, IMU LSTM and xyzQ concatenation:', cat_out.shape)
         
         ## Run main LSTM and flatten output
         r_out, (h_n, h_c) = self.rnn(cat_out)
         l_out1 = self.linear1(r_out[:,-1,:])
         l_out2 = self.linear2(l_out1)
         #l_out3 = self.linear3(l_out2)
-        print('\nFinal output of Deep learning network:', l_out2.shape)
+        #print('\nFinal output of Deep learning network:', l_out2.shape)
 
         return l_out2
     
     
 def train():
-    epoch = 5
+    epoch = 1
     batch = 1
     model = Vinet()
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -242,7 +241,7 @@ def train():
     abs_traj = None
     
     with tools.TimerBlock("Start training") as block:
-        for k in range(epoch):
+        for k in tqdm(range(epoch)):
             for i in range(start, end):#len(mydataset)-1):
                 data, data_imu, target_f2f, target_global = mydataset.load_img_bat(i, batch)
                 data, data_imu, target_f2f, target_global = \
@@ -251,42 +250,29 @@ def train():
                 optimizer.zero_grad()
                 
                 if i == start:
-                    print("\nstart:", start)
                     ## load first SE3 pose xyzQuaternion
                     abs_traj = mydataset.getTrajectoryAbs(start)
-                    print("\nabs_traj:", abs_traj)
                     abs_traj_input = np.expand_dims(abs_traj, axis=0)
-                    print("\nabs_traj:", abs_traj_input)
                     abs_traj_input = np.expand_dims(abs_traj_input, axis=0)
-                    print("\nabs_traj:", abs_traj_input)
-                    abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda()) 
-                    print("\nabs_traj:", abs_traj_input)
+                    abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda())
 
                 ## Forward
-                print("\nStart forward pass")
                 output = model(data, data_imu, abs_traj_input)
                 
                 ## Accumulate pose
-                print("\nAccumulate pose")
                 numarr = output.data.cpu().numpy()
-                print(1)
-                print("\nabs_traj:", abs_traj)
-                print("\nnumarr:", numarr)
                 abs_traj = se3qua.accu(abs_traj, numarr)
-                print(2)
                 abs_traj_input = np.expand_dims(abs_traj, axis=0)
-                print(3)
                 abs_traj_input = np.expand_dims(abs_traj_input, axis=0)
-                print(4)
                 abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda()) 
-                print(5)
                 
                 ## (F2F loss) + (Global pose loss)
                 ## Global pose: Full concatenated pose relative to the start of the sequence
-                print("\nCalculate loss")
+                print("\nModel output shape:", abs_traj_input.shape)
+                print("Target shape:", target_global.shape)
                 loss = criterion(output, target_f2f) + criterion(abs_traj_input, target_global)
+                # ABS TRAJ INPUT ON VAARA SHAPE!! PITAISI OLLA [1,7]
 
-                print("\nDo back propagation and optimize step")
                 loss.backward()
                 optimizer.step()
 

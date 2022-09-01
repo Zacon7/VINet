@@ -17,3 +17,4 @@ tensorboardX
 opencv-python
 numpy-quaternion
 numba
+tqdm

@@ -64,21 +64,21 @@ class FlowNetSD(nn.Module):
 
 
     def forward(self, x):
-        print("Flownet input shape:", x.shape)
+        #print("Flownet input shape:", x.shape)
         out_conv0 = self.conv0(x)
-        print("out_conv0:", out_conv0.shape)
+        #print("out_conv0:", out_conv0.shape)
         out_conv1 = self.conv1_1(self.conv1(out_conv0))
-        print("out_conv1:", out_conv1.shape)
+        #print("out_conv1:", out_conv1.shape)
         out_conv2 = self.conv2_1(self.conv2(out_conv1))
-        print("out_conv2:", out_conv2.shape)
+        #print("out_conv2:", out_conv2.shape)
         out_conv3 = self.conv3_1(self.conv3(out_conv2))
-        print("out_conv3:", out_conv3.shape)
+        #print("out_conv3:", out_conv3.shape)
         out_conv4 = self.conv4_1(self.conv4(out_conv3))
-        print("out_conv4:", out_conv4.shape)
+        #print("out_conv4:", out_conv4.shape)
         out_conv5 = self.conv5_1(self.conv5(out_conv4))
-        print("out_conv5:", out_conv5.shape)
+        #print("out_conv5:", out_conv5.shape)
         out_conv6 = self.conv6_1(self.conv6(out_conv5))
-        print("out_conv6:", out_conv6.shape)
+        #print("out_conv6:", out_conv6.shape)
        
         return out_conv6
        
