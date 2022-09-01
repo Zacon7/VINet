@@ -5,9 +5,10 @@ SE3 quaternion tools
 import sys
 sys.path
 #sys.path.append('/notebooks/Sophus/py') <- Is this really needed??
-sys.path.append('../PySophus/py')
+#sys.path.append('../PySophus/py')
 
-from sophus import *
+from sophus.se3 import Se3
+from sophus.so3 import So3
 #from sophus import se3 as Se3
 import numpy as np
 from sympy import *
@@ -48,9 +49,9 @@ def xyzQuaternion2se3_(arr):
     q_real = ww
     q_img = Matrix([wx, wy, wz])
     q = Quaternion(q_real,q_img)
-    R = So3(q)
+    R = So3(q) # So3
     
-    RT = Se3(R, trans)
+    RT = Se3(R, trans) #Se3
     numpy_vec = np.array(RT.log()).astype(float)  # SE3 to se3
     return np.concatenate(numpy_vec)
 
@@ -87,17 +88,24 @@ def accu(lastxyzQuaternion, new_se3r6):
     lastxyzQuaternion: np.array([x y z ww wx wy wz])
     new_se3r6: np.array([se3R^6])
     """
+    print("new_ser3r6:", new_se3r6)
+    se3r6_transposed = np.transpose(new_se3r6[0])
+    print("ser3r6_transposed:", se3r6_transposed)
+    new_se3r6 = Matrix(se3r6_transposed)
+    print("se3r6_matrix:", new_se3r6)
     #new_se3r6 = Matrix(np.transpose(new_se3r6)) #numpy array to sympy matrix
     print("lastxyzQuaternion:", lastxyzQuaternion)
-    print("new_se3r6:", new_se3r6[0])
     #print(type(new_se3r6))
     #M_SE3 = Se3.exp(new_se3r6)
-    M_SE3 = SE3.exp(new_se3r6)
-    print("Accu1")
+    M_SE3 = Se3.exp(new_se3r6)
+    print("M_SE3:", M_SE3)
     #print(type(M_SE3.dtype))
     M_SE3 = M_SE3.matrix()
+
     print("Accu2")
-    last = xyzQ2se3(lastxyzQuaternion)
+    print("lastxyzQuaternion:", lastxyzQuaternion)
+    last = xyzQ2se3(lastxyzQuaternion) ## KAATUU TASSA RIVISSA!
+
     print("Accu3")
     last = Matrix(np.transpose(last))
     print("Accu4")
