@@ -1,4 +1,3 @@
-# python2.7
 import os
 import torch 
 import torch.nn as nn
@@ -11,19 +10,13 @@ import cv2
 from tensorboardX import SummaryWriter
 
 
-# Replace flownetc with flownets
-#import networks.FlowNetSD as FlowNetSD
+# Replace flownetc with flownetsd
 import FlowNetSD
-#import networks.FlowNetC as FlowNetC
 from utils import tools
 from utils import se3qua
 
-
 from PIL import Image
 import numpy as np
-
-
-from PIL import Image
 
 import csv
 import time
