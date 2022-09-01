@@ -25,8 +25,6 @@ import errno
 from subprocess import call
 import csv
 
-
-
 import decimal
 
 #from sophus import *
@@ -36,11 +34,12 @@ from sophus.se3 import Se3
 from sophus.so3 import So3
 
 
-import quaternion #pip install numpy numpy-quaternion numba
+import quaternion
 import numpy as np
 from sympy import *
 
-from pyquaternion import Quaternion as Qua
+#from pyquaternion import Quaternion as Qua
+
 
 # create a new context for this task
 ctx = decimal.Context()
@@ -82,7 +81,17 @@ def xyzQuaternion2se3_(arr):
         
     q_real = ww
     q_img = Matrix([wx, wy, wz])
-    q = Quaternion(q_real,q_img)
+
+    print()
+    print("q_real:", q_real)
+    print("q_img:", q_img)
+    print()
+
+    q = Quaternion(q_real,q_img) # TAMA AIHEITTAA ERRORIN, MIKSI???? 
+    # VAATII 4 INPUTTIA, MITA NE OVAT???
+
+    print("\n IF YOU SEE THIS PRINT, THEN PROBLEM IS SOLVED!!\n")
+
     R = So3(q)
     
     RT = Se3(R, trans)
