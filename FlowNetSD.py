@@ -1,6 +1,3 @@
-# FlowNetSD used in the VINNet
-
-
 import torch
 import torch.nn as nn
 from torch.nn import init

@@ -3,6 +3,7 @@ runs/
 
 all_scalars.json
 
+*.tar
 *.pyc
 *.pt
 *.swp

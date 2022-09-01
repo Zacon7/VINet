@@ -48,7 +48,9 @@ def xyzQuaternion2se3_(arr):
         
     q_real = ww
     q_img = Matrix([wx, wy, wz])
-    q = Quaternion(q_real,q_img)
+    print("\nq_real:", q_real)
+    print("\nq_img:", q_img)
+    q = Quaternion(q_real,q_img) # KAATUU TAHAN!!!!!
     R = So3(q) # So3
     
     RT = Se3(R, trans) #Se3
@@ -57,7 +59,6 @@ def xyzQuaternion2se3_(arr):
 
 def xyzQ2se3(arr):
     result = []
-    
     if len(arr.shape) == 1:
         return xyzQuaternion2se3_(arr)
     else:
@@ -88,19 +89,15 @@ def accu(lastxyzQuaternion, new_se3r6):
     lastxyzQuaternion: np.array([x y z ww wx wy wz])
     new_se3r6: np.array([se3R^6])
     """
-    print("new_ser3r6:", new_se3r6)
-    se3r6_transposed = np.transpose(new_se3r6[0])
-    print("ser3r6_transposed:", se3r6_transposed)
-    new_se3r6 = Matrix(se3r6_transposed)
-    print("se3r6_matrix:", new_se3r6)
-    #new_se3r6 = Matrix(np.transpose(new_se3r6)) #numpy array to sympy matrix
-    print("lastxyzQuaternion:", lastxyzQuaternion)
+    new_se3r6 = Matrix(np.transpose(new_se3r6)) #numpy array to sympy matrix
+    print("\nlastxyzQuaternion:", lastxyzQuaternion)
     #print(type(new_se3r6))
     #M_SE3 = Se3.exp(new_se3r6)
     M_SE3 = Se3.exp(new_se3r6)
-    print("M_SE3:", M_SE3)
+    print("\nM_SE3:", M_SE3)
     #print(type(M_SE3.dtype))
     M_SE3 = M_SE3.matrix()
+    print("\nM_SE3:", M_SE3)
 
     print("Accu2")
     print("lastxyzQuaternion:", lastxyzQuaternion)

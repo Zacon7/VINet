@@ -47,11 +47,10 @@ class MyDataset:
         
         ## relative camera pose
         #ORIGINAL: self.trajectory_relative = self.read_R6TrajFile('/vicon0/sampled_relative_R6.csv')
-        self.trajectory_relative = self.read_R6TrajFile('/vicon0/data.csv')
+        self.trajectory_relative = self.read_R6TrajFile('/vicon0/sampled_relative.csv')
         
         ## abosolute camera pose (global)
-        #ORIGINAL: self.trajectory_abs = self.readTrajectoryFile('/vicon0/sampled.csv')
-        self.trajectory_abs = self.readTrajectoryFile('/state_groundtruth_estimate0/data.csv')
+        self.trajectory_abs = self.readTrajectoryFile('/vicon0/sampled.csv')
 
         ## imu
         self.imu = self.readIMU_File('/imu0/data.csv')
@@ -62,7 +61,6 @@ class MyDataset:
         traj = []
         with open(self.base_dir + self.sequence + path) as csvfile:
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-            next(spamreader, None) #Skip headers
             for row in spamreader:
                 parsed = [float(row[1]), float(row[2]), float(row[3]), 
                           float(row[4]), float(row[5]), float(row[6]), float(row[7])]
@@ -74,7 +72,6 @@ class MyDataset:
         traj = []
         with open(self.base_dir + self.sequence + path) as csvfile:
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-            next(spamreader, None) #Skip headers
             for row in spamreader:
                 parsed = [float(row[1]), float(row[2]), float(row[3]), 
                           float(row[4]), float(row[5]), float(row[6])]
@@ -174,8 +171,7 @@ class Vinet(nn.Module):
         
         
         checkpoint = None
-        #checkpoint_pytorch = '/notebooks/model/FlowNet2-C_checkpoint.pth.tar'
-        #checkpoint_pytorch = '/FlowNet2-S_checkpoint.pth.tar'
+
         checkpoint_pytorch = 'FlowNet2-SD_checkpoint.pth.tar'
         if os.path.isfile(checkpoint_pytorch):
             checkpoint = torch.load(checkpoint_pytorch,\
@@ -223,7 +219,7 @@ class Vinet(nn.Module):
         l_out1 = self.linear1(r_out[:,-1,:])
         l_out2 = self.linear2(l_out1)
         #l_out3 = self.linear3(l_out2)
-        print('\nDeep learning network output shape:', l_out2.shape)
+        print('\nFinal output of Deep learning network:', l_out2.shape)
 
         return l_out2
     
@@ -262,13 +258,17 @@ def train():
                 optimizer.zero_grad()
                 
                 if i == start:
+                    print("\nstart:", start)
                     ## load first SE3 pose xyzQuaternion
                     abs_traj = mydataset.getTrajectoryAbs(start)
-                    
+                    print("\nabs_traj:", abs_traj)
                     abs_traj_input = np.expand_dims(abs_traj, axis=0)
+                    print("\nabs_traj:", abs_traj_input)
                     abs_traj_input = np.expand_dims(abs_traj_input, axis=0)
+                    print("\nabs_traj:", abs_traj_input)
                     abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda()) 
-                
+                    print("\nabs_traj:", abs_traj_input)
+
                 ## Forward
                 print("\nStart forward pass")
                 output = model(data, data_imu, abs_traj_input)
@@ -277,6 +277,8 @@ def train():
                 print("\nAccumulate pose")
                 numarr = output.data.cpu().numpy()
                 print(1)
+                print("\nabs_traj:", abs_traj)
+                print("\nnumarr:", numarr)
                 abs_traj = se3qua.accu(abs_traj, numarr)
                 print(2)
                 abs_traj_input = np.expand_dims(abs_traj, axis=0)
