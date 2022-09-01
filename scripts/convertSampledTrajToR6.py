@@ -29,8 +29,13 @@ import csv
 
 import decimal
 
+#from sophus import *
+sys.path.append('../')
+print(sys.path)
+from sophus.se3 import Se3
+from sophus.so3 import So3
 
-from sophus import *
+
 import quaternion #pip install numpy numpy-quaternion numba
 import numpy as np
 from sympy import *
@@ -106,6 +111,7 @@ def _get_filenames_and_classes(dataset_dir):
     # Calculate relative pose
     trajectory_relative = []
     for i in range(len(trajectory_abs)-1):
+        print(i)
         #timestamp [ns],p_RS_R_x [m],p_RS_R_y [m],p_RS_R_z [m],q_RS_w [],q_RS_x [],q_RS_y [],q_RS_z []
         timestamp = trajectory_abs[i+1][0]
         X, Y, Z = np.array(trajectory_abs[i+1][1:4]).astype(float) - np.array(trajectory_abs[i][1:4]).astype(float)
@@ -129,8 +135,10 @@ def _get_filenames_and_classes(dataset_dir):
         #print(i)
         
     
-
-    with open(dataset_dir + '/vicon0/sampled_relative_R6.csv', 'w+') as f:
+    file_path = dataset_dir + '/vicon0/sampled_relative_R6.csv'
+    print("Write to file:", file_path)
+    print("Number of rows:", len(trajectory_relative))
+    with open(file_path, 'w+') as f:
         tmpStr = ",".join(trajectory_abs[0])
         f.write(tmpStr + '\n')        
         
@@ -143,23 +151,30 @@ def _get_filenames_and_classes(dataset_dir):
             r6 = float_to_str(trajectory_relative[i][5])
             tmpStr = str(trajectory_relative[i][0]) + ',' + r1 + ',' + r2 + ',' + r3 + ',' + r4 + ',' + r5 + ',' + r6
             f.write(tmpStr + '\n')        
-
+    f.close()
     return
                 
 
 def main():
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_01_easy')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_02_easy')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_03_medium')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_04_difficult')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_05_difficult')
-
     #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_01_easy')
-   # _get_filenames_and_classes('/notebooks/EuRoC_modify/V1_02_medium')
-#     _get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_03_difficult')
-     _get_filenames_and_classes('/notebooks/EuRoC_modify/V2_01_easy')
-#     _get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_02_medium')
-#     _get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_03_difficult')
+    #_get_filenames_and_classes('/notebooks/EuRoC_modify/V1_02_medium')
+    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_03_difficult')
+    #_get_filenames_and_classes('/notebooks/EuRoC_modify/V2_01_easy')
+    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_02_medium')
+    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_03_difficult')
+    print(1)
+    _get_filenames_and_classes('../../data/V1_01_easy/mav0')
+    print(2)
+    _get_filenames_and_classes('../../data/V1_02_medium/mav0')
+    print(3)
+    _get_filenames_and_classes('../../data/V1_03_difficult/mav0')
+    print(4)
+    _get_filenames_and_classes('../../data/V2_01_easy/mav0')
+    print(5)
+    _get_filenames_and_classes('../../data/V2_02_medium/mav0')
+    print(6)
+    _get_filenames_and_classes('../../data/V2_03_difficult/mav0')
+    print(7)
 
 if __name__ == "__main__":
     main()

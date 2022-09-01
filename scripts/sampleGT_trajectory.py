@@ -63,11 +63,14 @@ def _get_filenames_and_classes(dataset_dir):
     ## Get IMU original data
     myTime = []
     timeList = []
-    with open(dataset_dir + '/vicon0/data.csv') as csvfile:
+    file_path = dataset_dir + '/vicon0/data.csv'
+    print("\nWrite to file:", file_path)
+    with open(file_path) as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             myTime.append(row)
-            
+    print("Number of rows read:", len(myTime))        
+
     myTime = myTime[1:]
     for i in range(len(myTime)):
         timeList.append( int( myTime[i][0] ) )
@@ -79,12 +82,15 @@ def _get_filenames_and_classes(dataset_dir):
         searchTime = int(fileList[i])
         foundIdx = getClosestIndex(searchTime, searchStartIndex, timeList)
         sampledRow.append(myTime[foundIdx])
-        
-    with open(dataset_dir + '/vicon0/sampled.csv', 'w+') as f:
+    
+    file_path = dataset_dir + '/vicon0/sampled.csv'
+    print("Write to file:", file_path)
+    print("Number of rows written:", len(fileList))
+    with open(file_path, 'w+') as f:
         for i in range(len(sampledRow)):
             tmpStr = ",".join(sampledRow[i])
             f.write(tmpStr + '\n')
-        
+    f.close()
         
     
     return

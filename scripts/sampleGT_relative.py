@@ -48,12 +48,13 @@ def _get_filenames_and_classes(dataset_dir):
     
     
     trajectory_abs = []  #abosolute camera pose
-    with open(dataset_dir + '/vicon0/sampled.csv') as csvfile:
+    file_path = dataset_dir + '/vicon0/sampled.csv'
+    print("\nRead data from file:", file_path)
+    with open(file_path) as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in spamreader:
             trajectory_abs.append(row)
-            
-    print('Total data: '+ str(len(trajectory_abs)))
+    print('Number of rows read:', str(len(trajectory_abs)))
     
     
     # Calculate relative pose
@@ -73,10 +74,12 @@ def _get_filenames_and_classes(dataset_dir):
         relative_pose = [timestamp, X, Y, Z, relative_rot[0], relative_rot[1], relative_rot[2], relative_rot[3]]
         trajectory_relative.append(relative_pose)
         
-    with open(dataset_dir + '/vicon0/sampled_relative.csv', 'w+') as f:
+    file_path = dataset_dir + '/vicon0/sampled_relative.csv'
+    print("Write to file:", file_path)
+    print("Number of rows written:", len(trajectory_relative))
+    with open(file_path, 'w+') as f:
         tmpStr = ",".join(trajectory_abs[0])
         f.write(tmpStr + '\n')        
-        
         for i in range(len(trajectory_relative)):
             #tmpStr = ",".join(np.array(trajectory_relative[i]).astype(str))
             tmpStr = trajectory_relative[i][0] + ',' +\
@@ -88,7 +91,7 @@ def _get_filenames_and_classes(dataset_dir):
                      float_to_str(trajectory_relative[i][6]) + ',' +\
                      float_to_str(trajectory_relative[i][7])
             f.write(tmpStr + '\n')        
-            
+    f.close()
             
     return
                 
