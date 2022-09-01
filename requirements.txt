@@ -10,7 +10,10 @@ eigency
 cmake
 pybind11
 pyquaternion
+quaternion
 sympy
 cython
 tensorboardX
 opencv-python
+numpy-quaternion
+numba

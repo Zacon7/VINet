@@ -94,24 +94,19 @@ def _get_filenames_and_classes(dataset_dir):
                 
 
 def main():
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_01_easy')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_02_easy')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_03_medium')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_04_difficult')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/MH_05_difficult')
-
     #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_01_easy')
-    _get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_02_medium')
-    _get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_03_difficult')
-    _get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_01_easy')
-    _get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_02_medium')
-    _get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_03_difficult')
+    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_02_medium')
+    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_03_difficult')
+    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_01_easy')
+    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_02_medium')
+    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_03_difficult')
+    _get_filenames_and_classes('../../data/V1_01_easy/mav0')
+    _get_filenames_and_classes('../../data/V1_02_medium/mav0')
+    _get_filenames_and_classes('../../data/V1_03_difficult/mav0')
+    _get_filenames_and_classes('../../data/V2_01_easy/mav0')
+    _get_filenames_and_classes('../../data/V2_02_medium/mav0')
+    _get_filenames_and_classes('../../data/V2_03_difficult/mav0')
        
- 
 
-    
-    
 if __name__ == "__main__":
     main()
-    
-    
