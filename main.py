@@ -12,22 +12,22 @@ import csv
 from tqdm import tqdm
 
 import FlowNetSD
-from utils import se3qua
+#from utils import se3qua
+import se3qua
 
 
 
 class MyDataset:
-    
-    def __init__(self, base_dir, sequence):
-        self.base_dir = base_dir
-        self.sequence = sequence
+    def __init__(self, data_dir):
+        # 
+        self.data_dir = data_dir
 
         ## Set images folder
-        self.base_path_img = self.base_dir + self.sequence + '/cam0/data/'
+        self.base_path_img = self.data_dir + '/cam0/data/'
         print("\nRead images from folder:", self.base_path_img)
         
         # Get all image names without image paths    
-        self.data_files = os.listdir(self.base_dir + self.sequence + '/cam0/data/')
+        self.data_files = os.listdir(self.data_dir + '/cam0/data/')
         self.data_files.sort()
         print("Found {} images from the images folder.\n".format(len(self.data_files)))
         
@@ -44,7 +44,7 @@ class MyDataset:
     
     def readTrajectoryFile(self, path):
         traj = []
-        with open(self.base_dir + self.sequence + path) as csvfile:
+        with open(self.data_dir + path) as csvfile:
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
             for row in spamreader:
                 parsed = [float(row[1]), float(row[2]), float(row[3]), 
@@ -55,7 +55,7 @@ class MyDataset:
     
     def read_R6TrajFile(self, path):
         traj = []
-        with open(self.base_dir + self.sequence + path) as csvfile:
+        with open(self.data_dir + path) as csvfile:
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
             for row in spamreader:
                 parsed = [float(row[1]), float(row[2]), float(row[3]), 
@@ -67,7 +67,7 @@ class MyDataset:
     def readIMU_File(self, path):
         imu = []
         count = 0
-        with open(self.base_dir + self.sequence + path) as csvfile:
+        with open(self.data_dir + path) as csvfile:
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
             for row in spamreader:
                 if count == 0:
@@ -184,7 +184,7 @@ class Vinet(nn.Module):
 def train():
 
     # Set training parameters
-    epoch = 5
+    epoch = 1
     batch = 1 # Does not work (yet) with bigger patch size
     
     # Initialize summary writer 
@@ -197,7 +197,7 @@ def train():
     model = Vinet()
 
     # Load trained model checkpoint
-    checkpoint = torch.load('vinet_last.pt') # Options: vinet_best.pt or vinet_last.pt
+    checkpoint = torch.load('model_checkpoints/vinet_last.pt') # Options: vinet_best.pt or vinet_last.pt
     model.load_state_dict(checkpoint['model_state_dict'])
 
     # Transfer model from CPU to GPU
@@ -211,7 +211,7 @@ def train():
     model.train()
 
     # Path to where to read data in training process
-    mydataset = MyDataset('../data/', 'V2_03_difficult/mav0')
+    mydataset = MyDataset('data/V1_03_difficult/mav0')
 
     # Define loss function
     #criterion  = nn.MSELoss()
@@ -271,13 +271,13 @@ def train():
             # But require that iteration is larger than start+50, as loss is small at the beginning
             if (loss_float <= lowest_loss) and (i > 100): 
                 lowest_loss = loss_float
-                print('New lowest loss found, it is:', lowest_loss)
+                #print('New lowest loss found, it is:', lowest_loss)
                 torch.save({
                     'epoch': k,
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss': loss_float,
-                    }, 'vinet_best.pt')
+                    }, 'model_checkpoints/vinet_best.pt')
     
     # Save also the last checkpoint
     torch.save({
@@ -285,7 +285,7 @@ def train():
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': loss_float,
-            }, 'vinet_last.pt')
+            }, 'model_checkpoints/vinet_last.pt')
 
     # Save tensorboard file
     writer.flush()
