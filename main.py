@@ -292,28 +292,32 @@ def train():
     writer.close()
 
 def test():
-    checkpoint_pytorch = '/notebooks/vinet/vinet_v1_01.pt'
-    if os.path.isfile(checkpoint_pytorch):
-        checkpoint = torch.load(checkpoint_pytorch,\
-                            map_location=lambda storage, loc: storage.cuda(0))
-        #best_err = checkpoint['best_EPE']
-    else:
-        print('No checkpoint')
-    
 
+    # Get GPU device which will be used in training
+    device = torch.device("cuda")
+
+    # Get the model
     model = Vinet()
-    model.load_state_dict(checkpoint)  
-    model.cuda()
-    model.eval()
-    mydataset = MyDataset('/notebooks/EuRoC_modify/', 'V2_03_difficult')
+
+    # Load trained model checkpoint
+    checkpoint = torch.load('model_checkpoints/vinet_last.pt') # Options: vinet_best.pt or vinet_last.pt
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+    # Transfer model from CPU to GPU
+    model.to(device)
+    
+    # Define folder where to read data
+    mydataset = MyDataset('data/V1_01_easy/mav0')
     
     
     err = 0
     ans = []
     abs_traj = None
     start = 5
-    #for i in range(len(mydataset)-1):
-    for i in range(start, 100):
+
+    # Start evaluation process
+    #for i in tqdm(range(start, 5000)):
+    for i in tqdm(range(start, len(mydataset))):
         data, data_imu, target, target2 = mydataset.load_img_bat(i, 1)
         data, data_imu, target, target2 = data.cuda(), data_imu.cuda(), target.cuda(), target2.cuda()
 
@@ -326,46 +330,43 @@ def test():
                     
         output = model(data, data_imu, abs_traj)
         
+        # Add error to variable ett
         err += float(((target - output) ** 2).mean())
         
         output = output.data.cpu().numpy()
-
         xyzq = se3qua.se3R6toxyzQ(output)
-                
         abs_traj = abs_traj.data.cpu().numpy()[0]
         numarr = output
-        
+
         abs_traj = se3qua.accu(abs_traj, numarr)
         abs_traj = np.expand_dims(abs_traj, axis=0)
         abs_traj = np.expand_dims(abs_traj, axis=0)
         abs_traj = Variable(torch.from_numpy(abs_traj).type(torch.FloatTensor).cuda()) 
         
         ans.append(xyzq)
-        print(xyzq)
-        print('{}/{}'.format(str(i+1), str(len(mydataset)-1)) )
+        #print(xyzq)
+        #print('{}/{}'.format(str(i+1), str(len(mydataset)-1)) )
         
-        
-    print('err = {}'.format(err/(len(mydataset)-1)))  
+    
+    # Print error
+    print('err = {}'.format(err/(len(mydataset)-1)))  ## Why it is NaN????
     trajectoryAbs = mydataset.getTrajectoryAbsAll()
-    print(trajectoryAbs[0])
     x = trajectoryAbs[0].astype(str)
     x = ",".join(x)
     
-    with open('/notebooks/EuRoC_modify/V2_01_easy/vicon0/sampled_relative_ans.csv', 'w+') as f:
+    # Write results to file
+    with open('data/V1_01_easy/mav0/vicon0/sampled_relative_ans.csv', 'w+') as f:
         tmpStr = x
-        f.write(tmpStr + '\n')        
-        
+        f.write(tmpStr + '\n')
         for i in range(len(ans)-1):
             tmpStr = ans[i].astype(str)
             tmpStr = ",".join(tmpStr)
-            print(tmpStr)
-            print(type(tmpStr))
             f.write(tmpStr + '\n')      
     
 def main():
-    train()
-          
-    #test()
+    # Choose if you want to do model training or testing (ADD INFERENCE OPTION!!)
+    #train()     
+    test()
 
     
         
