@@ -215,7 +215,7 @@ def train():
 
     # Define loss function
     #criterion  = nn.MSELoss()
-    criterion  = nn.L1Loss(size_average=False)
+    criterion  = nn.L1Loss(reduction='mean')
     
 
     start = 5
