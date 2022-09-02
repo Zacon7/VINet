@@ -13,7 +13,6 @@ pyquaternion
 quaternion
 sympy
 cython
-opencv-python
 numpy-quaternion
 numba
 tqdm

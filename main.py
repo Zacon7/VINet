@@ -185,7 +185,7 @@ def train():
 
     # Set training parameters
     epoch = 1
-    batch = 1
+    batch = 1 # Does not work (yet) with bigger patch size
     
     # Initialize summary writer 
     writer = SummaryWriter()
@@ -210,8 +210,8 @@ def train():
     # Set model to training state
     model.train()
 
-    # Path to read data
-    mydataset = MyDataset('../data/', 'V2_01_easy/mav0')
+    # Path to where to read data in training process
+    mydataset = MyDataset('../data/', 'V2_03_difficult/mav0')
 
     # Define loss function
     #criterion  = nn.MSELoss()
@@ -224,7 +224,7 @@ def train():
    
 
     # Get the lowest loss from checkpoint. Used when searching for the new best model.
-    lowest_loss = checkpoint['loss'] + 1 # Add 1 to make training happen, if you change dataset as loss is based on previous dataset
+    lowest_loss = checkpoint['loss'] + 100 # Add 1 to make training happen, if you change dataset as loss is based on previous dataset
     print("\nLoss in the loaded checkpoint is:", lowest_loss)
     
    # Run training loop
@@ -268,9 +268,10 @@ def train():
             writer.add_scalar('Loss/train', loss_float, k*batch_num + i)
 
             # Check if loss in lower than ever before
-            if loss_float < lowest_loss:
+            # But require that iteration is larger than start+50, as loss is small at the beginning
+            if (loss_float <= lowest_loss) and (i > start+50): 
                 lowest_loss = loss_float
-                print('New lowest loss found! New lowest loss is:', lowest_loss)
+                print('New lowest loss found, it is:', lowest_loss)
                 torch.save({
                     'epoch': k,
                     'model_state_dict': model.state_dict(),
