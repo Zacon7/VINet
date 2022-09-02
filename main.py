@@ -5,22 +5,14 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import torch.utils.data
 import torch.optim as optim
-import cv2
-
-#from tensorboardX import SummaryWriter
 from torch.utils.tensorboard import SummaryWriter
-
-# Replace flownetc with flownetsd
-import FlowNetSD
-from utils import tools
-from utils import se3qua
-
 from PIL import Image
 import numpy as np
-
 import csv
-import time
 from tqdm import tqdm
+
+import FlowNetSD
+from utils import se3qua
 
 
 
@@ -103,24 +95,23 @@ class MyDataset:
         batch_x = []
         batch_imu = []
         for i in range(batch):
-            x_data_np_1 = np.array(Image.open(self.base_path_img + self.data_files[idx + i]))
-            x_data_np_2 = np.array(Image.open(self.base_path_img + self.data_files[idx+1 + i]))
+            # Read images and resize them to 512 x 384 pixels
+            x_data_np_1 = np.array(Image.open(self.base_path_img + self.data_files[idx + i]).resize((512,384)))
+            x_data_np_2 = np.array(Image.open(self.base_path_img + self.data_files[idx+1 + i]).resize((512,384)))
 
-            # Resize images
-            x_data_np_1 = cv2.resize(x_data_np_1, dsize=(512, 384), interpolation=cv2.INTER_CUBIC)
-            x_data_np_2 = cv2.resize(x_data_np_2, dsize=(512, 384), interpolation=cv2.INTER_CUBIC)
-
-            ## 3 channels
+            ## Images are gray scale, copy same channel value to all 3 channels
             x_data_np_1 = np.array([x_data_np_1, x_data_np_1, x_data_np_1])
             x_data_np_2 = np.array([x_data_np_2, x_data_np_2, x_data_np_2])
 
+            # Concatenate both images into the same variable and add it to the images batch list
             X = np.array([x_data_np_1, x_data_np_2])
             batch_x.append(X)
 
+            # Read IMU data and add to the IMU data batch list
             tmp = np.array(self.imu[idx-self.imu_seq_len+1 + i:idx+1 + i])
             batch_imu.append(tmp)
             
-        
+
         batch_x = np.array(batch_x)
         batch_imu = np.array(batch_imu)
         
@@ -135,8 +126,6 @@ class MyDataset:
         
         return X, X2, Y, Y2
 
-    
-    
 class Vinet(nn.Module):
     def __init__(self):
         super(Vinet, self).__init__()
@@ -170,24 +159,17 @@ class Vinet(nn.Module):
         ## Input1: Feed image pairs to FlownetC
         c_in = image.view(batch_size, timesteps * C, H, W)
         c_out = self.flownet_sd(c_in)
-        #print('\nFlownet output shape:', c_out.shape)
         #r_in = c_out.view(batch_size, timesteps, -1)
         r_in = c_out.view(batch_size, 1, -1)
-        #print('Flownet output after flattening:', r_in.shape)
         
         ## Input2: Feed IMU records to small LSTM
         imu_out, (imu_n, imu_c) = self.rnnIMU(imu)
         imu_out = imu_out[:, -1, :]
-        #print('imu_out', imu_out.shape)
         imu_out = imu_out.unsqueeze(1)
-        #print('\nIMU small LSTM output shame:', imu_out.shape)
         
         ## Combine the output of Flownet and IMU LSTM and xyzQ
         cat_out = torch.cat((r_in, imu_out), 2)#1 1 49158
-        #print("xyzQ:", xyzQ.shape)
-        #print("cat_out:", cat_out.shape)
         cat_out = torch.cat((cat_out, xyzQ), 2)#1 1 49165
-        #print('\nShape after Flownet, IMU LSTM and xyzQ concatenation:', cat_out.shape)
         
         ## Run main LSTM and flatten output
         r_out, (h_n, h_c) = self.rnn(cat_out)
@@ -215,7 +197,7 @@ def train():
     model = Vinet()
 
     # Load trained model checkpoint
-    checkpoint = torch.load('vinet_best.pt')
+    checkpoint = torch.load('vinet_last.pt') # Options: vinet_best.pt or vinet_last.pt
     model.load_state_dict(checkpoint['model_state_dict'])
 
     # Transfer model from CPU to GPU
@@ -228,8 +210,8 @@ def train():
     # Set model to training state
     model.train()
 
-    # Update mydataset path
-    mydataset = MyDataset('../data/', 'V1_01_easy/mav0')
+    # Path to read data
+    mydataset = MyDataset('../data/', 'V2_01_easy/mav0')
 
     # Define loss function
     #criterion  = nn.MSELoss()
@@ -239,74 +221,71 @@ def train():
     start = 5
     end = len(mydataset)-batch
     batch_num = (end - start) #/ batch
-    startT = time.time() 
-    abs_traj = None
+   
 
     # Get the lowest loss from checkpoint. Used when searching for the new best model.
-    lowest_loss = checkpoint['loss']
+    lowest_loss = checkpoint['loss'] + 1 # Add 1 to make training happen, if you change dataset as loss is based on previous dataset
     print("\nLoss in the loaded checkpoint is:", lowest_loss)
     
-    with tools.TimerBlock("Start training") as block:
-        for k in tqdm(range(epoch)):
-            for i in tqdm(range(start, end), leave=False):#len(mydataset)-1):
-                data, data_imu, target_f2f, target_global = mydataset.load_img_bat(i, batch)
-                data, data_imu, target_f2f, target_global = \
-                    data.cuda(), data_imu.cuda(), target_f2f.cuda(), target_global.cuda()
+   # Run training loop
+    for k in tqdm(range(epoch)):
+        for i in tqdm(range(start, end), leave=False):
+            data, data_imu, target_f2f, target_global = mydataset.load_img_bat(i, batch)
+            data, data_imu, target_f2f, target_global = \
+                data.cuda(), data_imu.cuda(), target_f2f.cuda(), target_global.cuda()
 
-                optimizer.zero_grad()
-                
-                if i == start:
-                    ## load first SE3 pose xyzQuaternion
-                    abs_traj = mydataset.getTrajectoryAbs(start)
-                    abs_traj_input = np.expand_dims(abs_traj, axis=0)
-                    abs_traj_input = np.expand_dims(abs_traj_input, axis=0)
-                    abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda())
-
-                ## Forward
-                output = model(data, data_imu, abs_traj_input)
-                
-                ## Accumulate pose
-                numarr = output.data.cpu().numpy()
-                abs_traj = se3qua.accu(abs_traj, numarr)
+            optimizer.zero_grad()
+            
+            if i == start:
+                ## load first SE3 pose xyzQuaternion
+                abs_traj = mydataset.getTrajectoryAbs(start)
                 abs_traj_input = np.expand_dims(abs_traj, axis=0)
                 abs_traj_input = np.expand_dims(abs_traj_input, axis=0)
-                abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda()) 
+                abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda())
+
+            ## Forward
+            output = model(data, data_imu, abs_traj_input)
+            
+            ## Accumulate pose
+            numarr = output.data.cpu().numpy()
+            abs_traj = se3qua.accu(abs_traj, numarr)
+            abs_traj_input = np.expand_dims(abs_traj, axis=0)
+            abs_traj_input = np.expand_dims(abs_traj_input, axis=0)
+            abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda()) 
 
 
-                ## (F2F loss) + (Global pose loss)
-                ## Global pose: Full concatenated pose relative to the start of the sequence
-                loss = criterion(output, target_f2f) + criterion(abs_traj_input, target_global)
+            ## (F2F loss) + (Global pose loss)
+            ## Global pose: Full concatenated pose relative to the start of the sequence
+            loss = criterion(output, target_f2f) + criterion(abs_traj_input, target_global)
 
-                loss.backward()
-                optimizer.step()
+            loss.backward()
+            optimizer.step()
 
-                # Loss from tensor to float
-                loss_float = loss.item()
-                
-                # Save loss to the tensorboard file
-                writer.add_scalar('Loss/train', loss_float, k*batch_num + i)
+            # Loss from tensor to float
+            loss_float = loss.item()
+            
+            # Save loss to the tensorboard file
+            writer.add_scalar('Loss/train', loss_float, k*batch_num + i)
 
-                # Check if loss in lower than ever before
-                if loss_float < lowest_loss:
-                    lowest_loss = loss_float
-                    print('New lowest loss found! New lowest loss is:', lowest_loss)
-                    torch.save({
-                        'epoch': k,
-                        'model_state_dict': model.state_dict(),
-                        'optimizer_state_dict': optimizer.state_dict(),
-                        'loss': loss_float,
-                        }, 'vinet_best.pt')
+            # Check if loss in lower than ever before
+            if loss_float < lowest_loss:
+                lowest_loss = loss_float
+                print('New lowest loss found! New lowest loss is:', lowest_loss)
+                torch.save({
+                    'epoch': k,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'loss': loss_float,
+                    }, 'vinet_best.pt')
     
-    # Save also the last loss
+    # Save also the last checkpoint
     torch.save({
             'epoch': k,
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': loss_float,
             }, 'vinet_last.pt')
-    #writer.export_scalars_to_json("./all_scalars.json")
-    #writer.close()
-    
+
     # Save tensorboard file
     writer.flush()
     writer.close()
@@ -325,7 +304,7 @@ def test():
     model.load_state_dict(checkpoint)  
     model.cuda()
     model.eval()
-    mydataset = MyDataset('/notebooks/EuRoC_modify/', 'V2_01_easy')
+    mydataset = MyDataset('/notebooks/EuRoC_modify/', 'V2_03_difficult')
     
     
     err = 0

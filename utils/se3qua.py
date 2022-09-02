@@ -3,24 +3,13 @@ SE3 quaternion tools
 """
 
 import sys
-sys.path
-#sys.path.append('/notebooks/Sophus/py') <- Is this really needed??
-#sys.path.append('../PySophus/py')
-
-from sophus.se3 import Se3
-from sophus.so3 import So3
-from sophus.quaternion import Quaternion as SophusQuaternion
-
-#from sophus import se3 as Se3
 import numpy as np
 from sympy import *
 from pyquaternion import Quaternion as Qua
 
-# Remove when everything works
-with open("imported_packages.txt", "w") as f:
-    for i in sys.modules:
-        f.write(i)
-        f.write("\n")
+from sophus.se3 import Se3
+from sophus.so3 import So3
+from sophus.quaternion import Quaternion as SophusQuaternion
 
 
 ## xyz quaternion ==> se(3)

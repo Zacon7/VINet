@@ -11,5 +11,3 @@ all_scalars.json
 *.o
 *.json
 *.flo
-runs/
-
