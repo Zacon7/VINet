@@ -13,8 +13,9 @@ pyquaternion
 quaternion
 sympy
 cython
-tensorboardX
 opencv-python
 numpy-quaternion
 numba
 tqdm
+tensorflow
+tensorboard

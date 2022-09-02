@@ -7,8 +7,8 @@ import torch.utils.data
 import torch.optim as optim
 import cv2
 
-from tensorboardX import SummaryWriter
-
+#from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 # Replace flownetc with flownetsd
 import FlowNetSD
@@ -203,6 +203,8 @@ class Vinet(nn.Module):
         
         ## Combine the output of Flownet and IMU LSTM and xyzQ
         cat_out = torch.cat((r_in, imu_out), 2)#1 1 49158
+        #print("xyzQ:", xyzQ.shape)
+        #print("cat_out:", cat_out.shape)
         cat_out = torch.cat((cat_out, xyzQ), 2)#1 1 49165
         #print('\nShape after Flownet, IMU LSTM and xyzQ concatenation:', cat_out.shape)
         
@@ -217,7 +219,7 @@ class Vinet(nn.Module):
     
     
 def train():
-    epoch = 1
+    epoch = 10
     batch = 1
     model = Vinet()
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -239,10 +241,12 @@ def train():
     batch_num = (end - start) #/ batch
     startT = time.time() 
     abs_traj = None
+
+    lowest_loss = 1000000
     
     with tools.TimerBlock("Start training") as block:
         for k in tqdm(range(epoch)):
-            for i in range(start, end):#len(mydataset)-1):
+            for i in tqdm(range(start, end), leave=False):#len(mydataset)-1):
                 data, data_imu, target_f2f, target_global = mydataset.load_img_bat(i, batch)
                 data, data_imu, target_f2f, target_global = \
                     data.cuda(), data_imu.cuda(), target_f2f.cuda(), target_global.cuda()
@@ -265,41 +269,41 @@ def train():
                 abs_traj_input = np.expand_dims(abs_traj, axis=0)
                 abs_traj_input = np.expand_dims(abs_traj_input, axis=0)
                 abs_traj_input = Variable(torch.from_numpy(abs_traj_input).type(torch.FloatTensor).cuda()) 
-                
+
+
                 ## (F2F loss) + (Global pose loss)
                 ## Global pose: Full concatenated pose relative to the start of the sequence
-                print("\nModel output shape:", abs_traj_input.shape)
-                print("Target shape:", target_global.shape)
                 loss = criterion(output, target_f2f) + criterion(abs_traj_input, target_global)
-                # ABS TRAJ INPUT ON VAARA SHAPE!! PITAISI OLLA [1,7]
 
                 loss.backward()
                 optimizer.step()
 
-                avgTime = block.avg()
-                remainingTime = int((batch_num*epoch -  (i + batch_num*k)) * avgTime)
-                rTime_str = "{:02d}:{:02d}:{:02d}".format(int(remainingTime/60//60), 
-                                                          int(remainingTime//60%60), 
-                                                          int(remainingTime%60))
+                # Loss from tensor to float
+                loss_float = loss.item()
 
-                
-                block.log('Train Epoch: {}\t[{}/{} ({:.0f}%)]\tLoss: {:.6f}, TimeAvg: {:.4f}, Remaining: {}'.format(
-                    k, i , batch_num,
-                    100. * (i + batch_num*k) / (batch_num*epoch), loss.data[0], avgTime, rTime_str))
-                
-                writer.add_scalar('loss', loss.data[0], k*batch_num + i)
+                #avgTime = block.avg()
+                #remainingTime = int((batch_num*epoch -  (i + batch_num*k)) * avgTime)
+                #rTime_str = "{:02d}:{:02d}:{:02d}".format(int(remainingTime/60//60), 
+                #                                          int(remainingTime//60%60), 
+                #                                          int(remainingTime%60))
 
+                #block.log('Train Epoch: {}\t[{}/{} ({:.0f}%)]\tLoss: {:.6f}, TimeAvg: {:.4f}, Remaining: {}'.format(
+                #    k, i , batch_num, 100. * (i + batch_num*k) / (batch_num*epoch), loss.item(), avgTime, rTime_str))
                 
-                
-                
-            check_str = 'checkpoint_{}.pt'.format(k)
-            torch.save(model.state_dict(), check_str)
-            
+                writer.add_scalar('loss', loss_float k*batch_num + i)
+
+                if loss_float < lowest_loss:
+                    block.log('New lowest loss found! New lowest loss is:', lowest_loss)
+                    check_str = 'checkpoint_{}.pt'.format(k)
+                    torch.save(model.state_dict(), 'vinet_v1_01.pt')
+                    #torch.save(model.state_dict(), check_str)
     
     #torch.save(model, 'vinet_v1_01.pt')
     #model.save_state_dict('vinet_v1_01.pt')
     torch.save(model.state_dict(), 'vinet_v1_01.pt')
-    writer.export_scalars_to_json("./all_scalars.json")
+    #writer.export_scalars_to_json("./all_scalars.json")
+    #writer.close()
+    writer.flush()
     writer.close()
 
 def test():
