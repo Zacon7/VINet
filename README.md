@@ -10,28 +10,35 @@
 
 # Installation
 
-Install all required Python packages with command:
+1. Clone this repository
+
+```
+git clone https://github.com/Saukkoriipi/VINet.git
+```
+
+2. Install all required Python packages with command:
 
 ```
 pip3 install -r requirements.txt
 ```
 
+3. Download wanted EuRoC MAV dataset to folder data
 
-# Download EuRoC MAV Dataset
+- [EuRoC MAV Dataset Homepage](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets#available_data)
 
-```
-# Create folder where to read data
-cd ..
-mkdir data
-cd data
-```
+- [EuRoC MAV Dataset download page](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/)
 
-Save and unzip datafiles to this folder
+4. Pre-process downloaded data to correct format
 
-[EuRoC MAV Dataset Homepage](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets#available_data)
+Add instructions!!
 
-[EuRoC MAV Dataset download page](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/)
+5. Download pretrained model
 
+Add link!!
+
+6. From main.py choose if you want to run VINet training, testing or inference
+
+Add guide when ready!!
 
 # Download pretrained Flownet model
 
@@ -40,18 +47,6 @@ Download trained model to same location as where you have the VINNet main.py fil
 [Download trained Flownet2-SD](https://drive.google.com/file/d/1QW03eyYG_vD-dT-Mx4wopYvtPu_msTKn/view?usp=sharing)
 
 [Link to Nvidia Flownet repository](https://github.com/NVIDIA/flownet2-pytorch)
-
-# Training (update training process!!)
-Log into container
-```bash
-sudo docker exec -it vinet bash
-cd /notebooks/vinet
-```
-
-Execute main.py by
-```bash
-python3 main.py
-```
 
 # Note
 ## Network detail structure
