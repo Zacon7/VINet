@@ -161,26 +161,7 @@ class Vinet(nn.Module):
         self.linear2.cuda()
         #self.linear3.cuda()
         
-        
-        
-        checkpoint = None
-
-        checkpoint_pytorch = 'FlowNet2-SD_checkpoint.pth.tar'
-        if os.path.isfile(checkpoint_pytorch):
-            checkpoint = torch.load(checkpoint_pytorch,\
-                                map_location=lambda storage, loc: storage.cuda(0))
-            best_err = checkpoint['best_EPE']
-            print('\nFLownet checkpoint loaded!"')
-        else:
-            print('No checkpoint')
-
-        
-        #self.flownet_c = FlowNetC.FlowNetC(batchNorm=False)
-        #self.flownet_c.load_state_dict(checkpoint['state_dict'])
-        #self.flownet_c.cuda()
-
         self.flownet_sd = FlowNetSD.FlowNetSD(batchNorm=False)
-        self.flownet_sd.load_state_dict(checkpoint['state_dict'])
         self.flownet_sd.cuda()
 
     def forward(self, image, imu, xyzQ):
@@ -219,30 +200,51 @@ class Vinet(nn.Module):
     
     
 def train():
-    epoch = 10
+
+    # Set training parameters
+    epoch = 1
     batch = 1
-    model = Vinet()
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    #optimizer = optim.Adam(model.parameters(), lr = 0.001)
     
+    # Initialize summary writer 
     writer = SummaryWriter()
     
+    # Get GPU device which will be used in training
+    device = torch.device("cuda")
+
+    # Get the model
+    model = Vinet()
+
+    # Load trained model checkpoint
+    checkpoint = torch.load('vinet_best.pt')
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+    # Transfer model from CPU to GPU
+    model.to(device)
+
+    # Define optimizer
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    #optimizer = optim.Adam(model.parameters(), lr = 0.001)
+
+    # Set model to training state
     model.train()
 
     # Update mydataset path
-    #ORIGINAL: mydataset = MyDataset('/notebooks/EuRoC_modify/', 'V1_01_easy')
     mydataset = MyDataset('../data/', 'V1_01_easy/mav0')
 
+    # Define loss function
     #criterion  = nn.MSELoss()
     criterion  = nn.L1Loss(size_average=False)
     
+
     start = 5
     end = len(mydataset)-batch
     batch_num = (end - start) #/ batch
     startT = time.time() 
     abs_traj = None
 
-    lowest_loss = 1000000
+    # Get the lowest loss from checkpoint. Used when searching for the new best model.
+    lowest_loss = checkpoint['loss']
+    print("\nLoss in the loaded checkpoint is:", lowest_loss)
     
     with tools.TimerBlock("Start training") as block:
         for k in tqdm(range(epoch)):
@@ -280,29 +282,32 @@ def train():
 
                 # Loss from tensor to float
                 loss_float = loss.item()
-
-                #avgTime = block.avg()
-                #remainingTime = int((batch_num*epoch -  (i + batch_num*k)) * avgTime)
-                #rTime_str = "{:02d}:{:02d}:{:02d}".format(int(remainingTime/60//60), 
-                #                                          int(remainingTime//60%60), 
-                #                                          int(remainingTime%60))
-
-                #block.log('Train Epoch: {}\t[{}/{} ({:.0f}%)]\tLoss: {:.6f}, TimeAvg: {:.4f}, Remaining: {}'.format(
-                #    k, i , batch_num, 100. * (i + batch_num*k) / (batch_num*epoch), loss.item(), avgTime, rTime_str))
                 
-                writer.add_scalar('loss', loss_float k*batch_num + i)
+                # Save loss to the tensorboard file
+                writer.add_scalar('Loss/train', loss_float, k*batch_num + i)
 
+                # Check if loss in lower than ever before
                 if loss_float < lowest_loss:
-                    block.log('New lowest loss found! New lowest loss is:', lowest_loss)
-                    check_str = 'checkpoint_{}.pt'.format(k)
-                    torch.save(model.state_dict(), 'vinet_v1_01.pt')
-                    #torch.save(model.state_dict(), check_str)
+                    lowest_loss = loss_float
+                    print('New lowest loss found! New lowest loss is:', lowest_loss)
+                    torch.save({
+                        'epoch': k,
+                        'model_state_dict': model.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'loss': loss_float,
+                        }, 'vinet_best.pt')
     
-    #torch.save(model, 'vinet_v1_01.pt')
-    #model.save_state_dict('vinet_v1_01.pt')
-    torch.save(model.state_dict(), 'vinet_v1_01.pt')
+    # Save also the last loss
+    torch.save({
+            'epoch': k,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': loss_float,
+            }, 'vinet_last.pt')
     #writer.export_scalars_to_json("./all_scalars.json")
     #writer.close()
+    
+    # Save tensorboard file
     writer.flush()
     writer.close()
 
