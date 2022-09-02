@@ -10,33 +10,33 @@
 
 # Installation
 
-1. Clone this repository
+## 1. Clone this repository
 
 ```
 git clone https://github.com/Saukkoriipi/VINet.git
 ```
 
-2. Install all required Python packages with command:
+## 2. Install all required Python packages with command:
 
 ```
 pip3 install -r requirements.txt
 ```
 
-3. Download wanted EuRoC MAV dataset to folder data
+## 3. Download wanted EuRoC MAV dataset to folder data
 
 - [EuRoC MAV Dataset Homepage](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets#available_data)
 
 - [EuRoC MAV Dataset download page](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/)
 
-4. Pre-process downloaded data to correct format
+## 4. Pre-process downloaded data to correct format
 
 Add instructions!!
 
-5. Download pretrained model
+## 5. Download pretrained model
 
-Add link!!
+[Link to Google Drive where to download trained VINet models](https://drive.google.com/drive/folders/1YesyMdkfIF-S8udJVCJTXpGbZG_yyEyw?usp=sharing)
 
-6. From main.py choose if you want to run VINet training, testing or inference
+## 6. From main.py choose if you want to run VINet training, testing or inference
 
 Add guide when ready!!
 
