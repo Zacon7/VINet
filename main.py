@@ -184,7 +184,7 @@ class Vinet(nn.Module):
 def train():
 
     # Set training parameters
-    epoch = 1
+    epoch = 8
     batch = 1 # Does not work (yet) with bigger patch size
     
     # Initialize summary writer 
@@ -211,7 +211,7 @@ def train():
     model.train()
 
     # Path to where to read data in training process
-    mydataset = MyDataset('../data/', 'V2_03_difficult/mav0')
+    mydataset = MyDataset('../data/', 'V1_03_difficult/mav0')
 
     # Define loss function
     #criterion  = nn.MSELoss()
@@ -269,7 +269,7 @@ def train():
 
             # Check if loss in lower than ever before
             # But require that iteration is larger than start+50, as loss is small at the beginning
-            if (loss_float <= lowest_loss) and (i > start+50): 
+            if (loss_float <= lowest_loss) and (i > start+100): 
                 lowest_loss = loss_float
                 print('New lowest loss found, it is:', lowest_loss)
                 torch.save({
