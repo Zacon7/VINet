@@ -32,7 +32,7 @@ pip3 install -r requirements.txt
 
 Add instructions!!
 
-## 5. Download pretrained model
+## 5. Download pretrained model to folder model_checkpoints
 
 [Link to Google Drive where to download trained VINet models](https://drive.google.com/drive/folders/1YesyMdkfIF-S8udJVCJTXpGbZG_yyEyw?usp=sharing)
 
