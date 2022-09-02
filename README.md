@@ -48,6 +48,13 @@ Download trained model to same location as where you have the VINNet main.py fil
 
 [Link to Nvidia Flownet repository](https://github.com/NVIDIA/flownet2-pytorch)
 
+
+## 7. If you do model training, training process can be visualized with tensorboard
+
+```
+python3 -m tensorboard.main --logdir=runs
+```
+
 # Note
 ## Network detail structure
 ![](./doc_fig/vinet.png)
