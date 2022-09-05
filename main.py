@@ -29,7 +29,7 @@ class MyDataset:
         
         # Get all image names without image paths    
         self.data_files = os.listdir(self.data_dir + '/cam0/data/')
-        self.data_files.sort()
+        self.data_files.sort() # Order images by name
         print("Found {} images from the images folder.\n".format(len(self.data_files)))
         
         ## relative camera pose
@@ -41,6 +41,7 @@ class MyDataset:
         ## imu
         self.imu = self.readIMU_File('/imu0/data.csv')
         
+        # Number of imu steps in one image step
         self.imu_seq_len = 5
     
     def readTrajectoryFile(self, path):
@@ -66,19 +67,21 @@ class MyDataset:
         return np.array(traj)
     
     def readIMU_File(self, path):
-        imu = []
-        count = 0
+        # Initialize list where to read imu data
+        imu_data = []
+        # Open imu data file
         with open(self.data_dir + path) as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
-            for row in spamreader:
-                if count == 0:
-                    count += 1
-                    continue
-                parsed = [float(row[1]), float(row[2]), float(row[3]), 
-                          float(row[4]), float(row[5]), float(row[6])]
-                imu.append(parsed)
-                
-        return np.array(imu)
+            # Skip first row (only data headers)
+            _ = csvfile.readline()
+            # Read the whole imu data file with csv reader
+            imu_file = csv.reader(csvfile, delimiter=',', quotechar='|')
+            # Then read imu_data row by row and add to list
+            for row in imu_file:
+                parsed_row = [float(row[1]), float(row[2]), float(row[3]), 
+                            float(row[4]), float(row[5]), float(row[6])]
+                imu_data.append(parsed_row)
+        # Convert list to numpy array and return results
+        return np.array(imu_data)
     
     def getTrajectoryAbs(self, idx):
         return self.trajectory_abs[idx]
@@ -114,6 +117,7 @@ class MyDataset:
 
             # Read IMU data and add to the IMU data batch list
             imu_batch = np.array(self.imu[idx-self.imu_seq_len+1 + i:idx+1 + i])
+            print(len(imu_batch))
             imu_data.append(imu_batch)
 
         # Lists to numpy array
@@ -190,7 +194,7 @@ class Vinet(nn.Module):
 def train(dataset_base_path):
 
     # Set training parameters
-    epoch = 1 # Number of epochs
+    epoch = 100 # Number of epochs
     batch = 1 # Does not work (yet) with bigger patch size
 
     # Initialize summary writer 
@@ -301,10 +305,11 @@ def train(dataset_base_path):
     writer.close()
 
 def test(dataset_base_path):
-
+    
     # Get GPU device which will be used in training
     device = torch.device("cuda")
 
+    # Get GPU device which will be used in trimu
     # Get the model
     model = Vinet()
 
@@ -325,10 +330,11 @@ def test(dataset_base_path):
     start = 5
 
     # Start evaluation process
-    # Data: img_data_gpu, imu_data_gpu, trajectory_relative_gpu, trajectory_abs_gpu
-    for i in tqdm(range(start, len(mydataset))):
-        data, data_imu, target, target2 = mydataset.load_img_bat(i, 1)
-        #data, data_imu, target, target2 = data.cuda(), data_imu.cuda(), target.cuda(), target2.cuda()
+    for i in tqdm(range(start, len(mydataset)-10)):
+
+        # Load data for batch i
+        # Data: img_data_gpu, imu_data_gpu, trajectory_relative_gpu, trajectory_abs_gpu
+        img_data, imu_data, rel_trajectory, _ = mydataset.load_img_bat(i, 1)
 
         if i == start:
             ## load first SE3 pose xyzQuaternion
@@ -336,13 +342,14 @@ def test(dataset_base_path):
             abs_traj = np.expand_dims(abs_traj, axis=0)
             abs_traj = np.expand_dims(abs_traj, axis=0)
             abs_traj = Variable(torch.from_numpy(abs_traj).type(torch.FloatTensor).cuda()) 
-                    
-        output = model(data, data_imu, abs_traj)
+        
+        # Run model inference
+        output = model(img_data, imu_data, abs_traj)
         
         # Add error to variable ett
-        err += float(((target - output) ** 2).mean())
+        err += float(((rel_trajectory - output) ** 2).mean())
         if i > 2888:
-            print("\ntarget:", target)
+            print("\ntarget:", rel_trajectory)
             print("\output:", output)
         
         output = output.data.cpu().numpy()
@@ -373,15 +380,26 @@ def test(dataset_base_path):
         for i in range(len(ans)-1):
             tmpStr = ans[i].astype(str)
             tmpStr = ",".join(tmpStr)
-            f.write(tmpStr + '\n')      
+            f.write(tmpStr + '\n')
     
 def main():
     # Choose if you want to do model training or testing (ADD INFERENCE OPTION!!)
-    train(dataset_base_path = 'data/V1_01_easy/mav0')
-    #test(dataset_base_path = 'data/V1_01_easy/mav0')
 
-    
-        
+    # Train options:
+    train(dataset_base_path = 'data/V1_01_easy/mav0')
+    train(dataset_base_path = 'data/V1_02_medium/mav0')
+    train(dataset_base_path = 'data/V1_03_difficult/mav0')
+    train(dataset_base_path = 'data/V2_01_easy/mav0')
+    train(dataset_base_path = 'data/V2_02_medium/mav0')
+    train(dataset_base_path = 'data/V2_03_difficult/mav0')
+
+    # Test options:
+    #test(dataset_base_path = 'data/V1_01_easy/mav0')
+    #test(dataset_base_path = 'data/V1_02_medium/mav0')
+    #test(dataset_base_path = 'data/V1_03_difficult/mav0')
+    #test(dataset_base_path = 'data/V2_01_easy/mav0')
+    #test(dataset_base_path = 'data/V2_02_medium/mav0')
+    #test(dataset_base_path = 'data/V2_03_difficult/mav0')
 
 if __name__ == '__main__':
     main()
