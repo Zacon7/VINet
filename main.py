@@ -93,39 +93,44 @@ class MyDataset:
         return len(self.trajectory_relative)
     
     def load_img_bat(self, idx, batch):
-        batch_x = []
-        batch_imu = []
+
+        # Initialize images and imu data lists, where to append batch data
+        img_data = []
+        imu_data = []
+
+        # Read the data and append to lists
         for i in range(batch):
             # Read images and resize them to 512 x 384 pixels
-            x_data_np_1 = np.array(Image.open(self.base_path_img + self.data_files[idx + i]).resize((512,384)))
-            x_data_np_2 = np.array(Image.open(self.base_path_img + self.data_files[idx+1 + i]).resize((512,384)))
+            img_01 = np.array(Image.open(self.base_path_img + self.data_files[idx + i]).resize((512,384)))
+            img_02 = np.array(Image.open(self.base_path_img + self.data_files[idx+1 + i]).resize((512,384)))
 
             ## Images are gray scale, copy same channel value to all 3 channels
-            x_data_np_1 = np.array([x_data_np_1, x_data_np_1, x_data_np_1])
-            x_data_np_2 = np.array([x_data_np_2, x_data_np_2, x_data_np_2])
+            img_01 = np.array([img_01, img_01, img_01])
+            img_02 = np.array([img_02, img_02, img_02])
 
             # Concatenate both images into the same variable and add it to the images batch list
-            X = np.array([x_data_np_1, x_data_np_2])
-            batch_x.append(X)
+            img_concat = np.array([img_01, img_02])
+            img_data.append(img_concat)
 
             # Read IMU data and add to the IMU data batch list
-            tmp = np.array(self.imu[idx-self.imu_seq_len+1 + i:idx+1 + i])
-            batch_imu.append(tmp)
-            
+            imu_batch = np.array(self.imu[idx-self.imu_seq_len+1 + i:idx+1 + i])
+            imu_data.append(imu_batch)
 
-        batch_x = np.array(batch_x)
-        batch_imu = np.array(batch_imu)
+        # Lists to numpy array
+        img_data = np.array(img_data)
+        imu_data = np.array(imu_data)
         
-        X = Variable(torch.from_numpy(batch_x).type(torch.FloatTensor).cuda())    
-        X2 = Variable(torch.from_numpy(batch_imu).type(torch.FloatTensor).cuda())    
+        # Numpy arrays to tensors
+        img_data_gpu = Variable(torch.from_numpy(img_data).type(torch.FloatTensor).cuda())    
+        imu_data_gpu = Variable(torch.from_numpy(imu_data).type(torch.FloatTensor).cuda())    
         
         ## F2F gt
-        Y = Variable(torch.from_numpy(self.trajectory_relative[idx+1:idx+1+batch]).type(torch.FloatTensor).cuda())
+        trajectory_relative_gpu = Variable(torch.from_numpy(self.trajectory_relative[idx+1:idx+1+batch]).type(torch.FloatTensor).cuda())
         
         ## global pose gt
-        Y2 = Variable(torch.from_numpy(self.trajectory_abs[idx+1:idx+1+batch]).type(torch.FloatTensor).cuda())
+        trajectory_abs_gpu = Variable(torch.from_numpy(self.trajectory_abs[idx+1:idx+1+batch]).type(torch.FloatTensor).cuda())
         
-        return X, X2, Y, Y2
+        return img_data_gpu, imu_data_gpu, trajectory_relative_gpu, trajectory_abs_gpu
 
 class Vinet(nn.Module):
     def __init__(self):
@@ -185,9 +190,9 @@ class Vinet(nn.Module):
 def train(dataset_base_path):
 
     # Set training parameters
-    epoch = 5
+    epoch = 1 # Number of epochs
     batch = 1 # Does not work (yet) with bigger patch size
-    
+
     # Initialize summary writer 
     writer = SummaryWriter()
     
@@ -217,24 +222,26 @@ def train(dataset_base_path):
     # Define loss function
     #criterion  = nn.MSELoss()
     criterion  = nn.L1Loss(reduction='mean')
-    
-
-    start = 5
-    end = len(mydataset)-batch
-    batch_num = (end - start) #/ batch
-   
 
     # Get the lowest loss from checkpoint. Used when searching for the new best model.
     lowest_loss = checkpoint['loss'] + 100 # Add 1 to make training happen, if you change dataset as loss is based on previous dataset
     print("\nLoss in the loaded checkpoint is:", lowest_loss)
-    
-   # Run training loop
-    for k in tqdm(range(epoch)):
-        for i in tqdm(range(start, end), leave=False):
-            data, data_imu, target_f2f, target_global = mydataset.load_img_bat(i, batch)
-            data, data_imu, target_f2f, target_global = \
-                data.cuda(), data_imu.cuda(), target_f2f.cuda(), target_global.cuda()
 
+
+    start = 5 # Index of first data point
+    end = len(mydataset)-batch # 
+    batch_num = (end - start) # Number of batches
+    
+   # Run training loop k number of epochs
+    for k in tqdm(range(epoch)):
+
+        # Each epoch has i number of iterations
+        for i in tqdm(range(start, end), leave=False):
+
+            # Data: img_data_gpu, imu_data_gpu, trajectory_relative_gpu, trajectory_abs_gpu
+            data, data_imu, target_f2f, target_global = mydataset.load_img_bat(i, batch)
+
+            # Do not calculate gradients, as it is not needed in testing
             optimizer.zero_grad()
             
             if i == start:
@@ -318,10 +325,10 @@ def test(dataset_base_path):
     start = 5
 
     # Start evaluation process
-    #for i in tqdm(range(start, 5000)):
+    # Data: img_data_gpu, imu_data_gpu, trajectory_relative_gpu, trajectory_abs_gpu
     for i in tqdm(range(start, len(mydataset))):
         data, data_imu, target, target2 = mydataset.load_img_bat(i, 1)
-        data, data_imu, target, target2 = data.cuda(), data_imu.cuda(), target.cuda(), target2.cuda()
+        #data, data_imu, target, target2 = data.cuda(), data_imu.cuda(), target.cuda(), target2.cuda()
 
         if i == start:
             ## load first SE3 pose xyzQuaternion
@@ -334,7 +341,7 @@ def test(dataset_base_path):
         
         # Add error to variable ett
         err += float(((target - output) ** 2).mean())
-        if i > 2898:
+        if i > 2888:
             print("\ntarget:", target)
             print("\output:", output)
         
