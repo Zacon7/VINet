@@ -117,7 +117,6 @@ class MyDataset:
 
             # Read IMU data and add to the IMU data batch list
             imu_batch = np.array(self.imu[idx-self.imu_seq_len+1 + i:idx+1 + i])
-            print(len(imu_batch))
             imu_data.append(imu_batch)
 
         # Lists to numpy array
