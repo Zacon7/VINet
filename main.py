@@ -1,3 +1,4 @@
+# Import packages
 import os
 import torch 
 import torch.nn as nn
@@ -11,8 +12,8 @@ import numpy as np
 import csv
 from tqdm import tqdm
 
+# Import functions
 import FlowNetSD
-#from utils import se3qua
 import se3qua
 
 
@@ -181,10 +182,10 @@ class Vinet(nn.Module):
         return l_out2
     
     
-def train():
+def train(dataset_base_path):
 
     # Set training parameters
-    epoch = 1
+    epoch = 5
     batch = 1 # Does not work (yet) with bigger patch size
     
     # Initialize summary writer 
@@ -211,7 +212,7 @@ def train():
     model.train()
 
     # Path to where to read data in training process
-    mydataset = MyDataset('data/V1_03_difficult/mav0')
+    mydataset = MyDataset(dataset_base_path)
 
     # Define loss function
     #criterion  = nn.MSELoss()
@@ -286,12 +287,13 @@ def train():
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': loss_float,
             }, 'model_checkpoints/vinet_last.pt')
+    print("\nSaved last checkpoint to file: model_checkpoints/vinet_last.pt")
 
     # Save tensorboard file
     writer.flush()
     writer.close()
 
-def test():
+def test(dataset_base_path):
 
     # Get GPU device which will be used in training
     device = torch.device("cuda")
@@ -307,7 +309,7 @@ def test():
     model.to(device)
     
     # Define folder where to read data
-    mydataset = MyDataset('data/V1_01_easy/mav0')
+    mydataset = MyDataset(dataset_base_path)
     
     
     err = 0
@@ -332,6 +334,9 @@ def test():
         
         # Add error to variable ett
         err += float(((target - output) ** 2).mean())
+        if i > 2898:
+            print("\ntarget:", target)
+            print("\output:", output)
         
         output = output.data.cpu().numpy()
         xyzq = se3qua.se3R6toxyzQ(output)
@@ -365,8 +370,8 @@ def test():
     
 def main():
     # Choose if you want to do model training or testing (ADD INFERENCE OPTION!!)
-    #train()     
-    test()
+    train(dataset_base_path = 'data/V1_01_easy/mav0')
+    #test(dataset_base_path = 'data/V1_01_easy/mav0')
 
     
         
