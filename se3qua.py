@@ -4,7 +4,7 @@ SE3 quaternion tools
 
 import sys
 import numpy as np
-from sympy import *
+from sympy import Matrix
 from pyquaternion import Quaternion as Qua
 
 from sophus.se3 import Se3
