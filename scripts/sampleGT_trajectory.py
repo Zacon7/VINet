@@ -41,29 +41,31 @@ def getMidiumIndex(startTime, endTime, imu_index):
     return int((endIndex - startIndex) / 2) + startIndex
         
 def getClosestIndex(searchTime, searchStartIndex, timeList):
-    foundIdx = 0
+    foundIdx = 1
     for i in range(searchStartIndex, len(timeList)):
         if timeList[i] >= searchTime:
             foundIdx = i
             break
-    
     return foundIdx
 
 def _get_filenames_and_classes(dataset_dir):
 
 
     ## Get image list
-    fileList = os.listdir(dataset_dir + '/cam0/data')  
+    #fileList = os.listdir(dataset_dir + '/cam0/data')
+    fileList = os.listdir(dataset_dir + '/cam1/data')
     fileList.sort()
 
     for i in range(len(fileList)):
-        fileList[i] = fileList[i][0:-4]
+        #fileList[i] = fileList[i][0:-4]
+        fileList[i] = fileList[i][0:-13]
     
     
     ## Get IMU original data
     myTime = []
     timeList = []
-    file_path = dataset_dir + '/vicon0/data.csv'
+    #file_path = dataset_dir + '/vicon0/data.csv'
+    file_path = dataset_dir + '/reference/data.csv'
     print("\nWrite to file:", file_path)
     with open(file_path) as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
@@ -83,7 +85,8 @@ def _get_filenames_and_classes(dataset_dir):
         foundIdx = getClosestIndex(searchTime, searchStartIndex, timeList)
         sampledRow.append(myTime[foundIdx])
     
-    file_path = dataset_dir + '/vicon0/sampled.csv'
+    #file_path = dataset_dir + '/vicon0/sampled.csv'
+    file_path = dataset_dir + '/reference/sampled.csv'
     print("Write to file:", file_path)
     print("Number of rows written:", len(fileList))
     with open(file_path, 'w+') as f:
@@ -102,12 +105,13 @@ def main():
     #_get_filenames_and_classes('../../data/MH_03_medium')
     #_get_filenames_and_classes('../../data/MH_04_difficult')
     #_get_filenames_and_classes('../../data/MH_05_difficult')
-    _get_filenames_and_classes('../../data/V1_01_easy/mav0')
-    _get_filenames_and_classes('../../data/V1_02_medium/mav0')
-    _get_filenames_and_classes('../../data/V1_03_difficult/mav0')
-    _get_filenames_and_classes('../../data/V2_01_easy/mav0')
-    _get_filenames_and_classes('../../data/V2_02_medium/mav0')
-    _get_filenames_and_classes('../../data/V2_03_difficult/mav0')
+    #_get_filenames_and_classes('../../data/V1_01_easy/mav0')
+    #_get_filenames_and_classes('../../data/V1_02_medium/mav0')
+    #_get_filenames_and_classes('../../data/V1_03_difficult/mav0')
+    #_get_filenames_and_classes('../../data/V2_01_easy/mav0')
+    #_get_filenames_and_classes('../../data/V2_02_medium/mav0')
+    #_get_filenames_and_classes('../../data/V2_03_difficult/mav0')
+    _get_filenames_and_classes('../data/hy-data')
        
 if __name__ == "__main__":
     main()

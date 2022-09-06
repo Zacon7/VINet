@@ -48,7 +48,9 @@ def _get_filenames_and_classes(dataset_dir):
     
     
     trajectory_abs = []  #abosolute camera pose
-    file_path = dataset_dir + '/vicon0/sampled.csv'
+    #file_path = dataset_dir + '/vicon0/sampled.csv'
+    file_path = dataset_dir + '/reference/sampled.csv'
+
     print("\nRead data from file:", file_path)
     with open(file_path) as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
@@ -63,7 +65,8 @@ def _get_filenames_and_classes(dataset_dir):
         #timestamp [ns],p_RS_R_x [m],p_RS_R_y [m],p_RS_R_z [m],q_RS_w [],q_RS_x [],q_RS_y [],q_RS_z []
         timestamp = trajectory_abs[i+1][0]
         X, Y, Z = np.array(trajectory_abs[i+1][1:4]).astype(float) - np.array(trajectory_abs[i][1:4]).astype(float)
-        
+        print(i)
+        print(trajectory_abs[i][4:])
         ww0,wx0,wy0,wz0 = np.array(trajectory_abs[i][4:]).astype(float)
         ww1,wx1,wy1,wz1 = np.array(trajectory_abs[i+1][4:]).astype(float)
         q0 = np.quaternion(ww0,wx0,wy0,wz0)
@@ -74,7 +77,8 @@ def _get_filenames_and_classes(dataset_dir):
         relative_pose = [timestamp, X, Y, Z, relative_rot[0], relative_rot[1], relative_rot[2], relative_rot[3]]
         trajectory_relative.append(relative_pose)
         
-    file_path = dataset_dir + '/vicon0/sampled_relative.csv'
+    #file_path = dataset_dir + '/vicon0/sampled_relative.csv'
+    file_path = dataset_dir + '/reference/sampled_relative.csv'
     print("Write to file:", file_path)
     print("Number of rows written:", len(trajectory_relative))
     with open(file_path, 'w+') as f:
@@ -97,18 +101,14 @@ def _get_filenames_and_classes(dataset_dir):
                 
 
 def main():
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_01_easy')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_02_medium')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_03_difficult')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_01_easy')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_02_medium')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_03_difficult')
-    _get_filenames_and_classes('../../data/V1_01_easy/mav0')
-    _get_filenames_and_classes('../../data/V1_02_medium/mav0')
-    _get_filenames_and_classes('../../data/V1_03_difficult/mav0')
-    _get_filenames_and_classes('../../data/V2_01_easy/mav0')
-    _get_filenames_and_classes('../../data/V2_02_medium/mav0')
-    _get_filenames_and_classes('../../data/V2_03_difficult/mav0')
+    #_get_filenames_and_classes('../../data/V1_01_easy/mav0')
+    #_get_filenames_and_classes('../../data/V1_02_medium/mav0')
+    #_get_filenames_and_classes('../../data/V1_03_difficult/mav0')
+    #_get_filenames_and_classes('../../data/V2_01_easy/mav0')
+    #_get_filenames_and_classes('../../data/V2_02_medium/mav0')
+    #_get_filenames_and_classes('../../data/V2_03_difficult/mav0')
+
+    _get_filenames_and_classes('../data/hy-data')
        
 
 if __name__ == "__main__":

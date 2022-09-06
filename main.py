@@ -198,14 +198,14 @@ class Vinet(nn.Module):
 def train(dataset_base_path):
 
     # Set training parameters
-    epoch = 5 # Number of epochs
+    epoch = 1000 # Number of epochs
     batch = 1 # Does not work (yet) with bigger patch size
 
     # Initialize summary writer 
     writer = SummaryWriter()
     
-    # Get GPU device which will be used in training
-    device = torch.device("cuda")
+    # Define the device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Get the model
     model = Vinet()
@@ -310,8 +310,8 @@ def train(dataset_base_path):
 
 def test(dataset_base_path):
     
-    # Get GPU device which will be used in training
-    device = torch.device("cuda")
+    # Define the device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Get GPU device which will be used in trimu
     # Get the model
@@ -390,10 +390,10 @@ def main():
     # Choose if you want to do model training or testing (ADD INFERENCE OPTION!!)
 
     # Train options (EuRoC MAV):
-    train(dataset_base_path = 'data/V1_01_easy/mav0')
+    #train(dataset_base_path = 'data/V1_01_easy/mav0')
     #train(dataset_base_path = 'data/V1_02_medium/mav0')
     #train(dataset_base_path = 'data/V1_03_difficult/mav0')
-    #train(dataset_base_path = 'data/V2_01_easy/mav0')
+    train(dataset_base_path = 'data/V2_01_easy/mav0')
     #train(dataset_base_path = 'data/V2_02_medium/mav0')
     #train(dataset_base_path = 'data/V2_03_difficult/mav0')
 
