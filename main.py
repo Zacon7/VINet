@@ -24,23 +24,28 @@ class MyDataset:
         self.data_dir = data_dir
 
         ## Set images folder
-        self.base_path_img = self.data_dir + '/cam0/data/'
+        self.base_path_img = self.data_dir + '/cam0/data/' # EuRoC MAV
+        #self.base_path_img = self.data_dir + '/cam1/' # Own dataset
         print("\nRead images from folder:", self.base_path_img)
         
         # Get all image names without image paths    
-        self.data_files = os.listdir(self.data_dir + '/cam0/data/')
+        self.data_files = os.listdir(self.data_dir + '/cam0/data/') # EuRoC MAV
+        #self.data_files = os.listdir(self.data_dir + '/cam1') # Own dataset
         self.data_files.sort() # Order images by name
         print("Found {} images from the images folder.\n".format(len(self.data_files)))
         
         ## relative camera pose
-        self.trajectory_relative = self.read_R6TrajFile('/vicon0/sampled_relative_R6.csv')
+        self.trajectory_relative = self.read_R6TrajFile('/vicon0/sampled_relative_R6.csv') # EuRoC MAV
+        #self.trajectory_relative = self.read_R6TrajFile('/reference/newrefence-quat-10hz.csv') #  Own dataset
         
         ## abosolute camera pose (global)
-        self.trajectory_abs = self.readTrajectoryFile('/vicon0/sampled.csv')
+        self.trajectory_abs = self.readTrajectoryFile('/vicon0/sampled.csv') # EuRoC MAV
+        #self.trajectory_abs = self.readTrajectoryFile('/reference/newrefence-quat-10hz.csv') #  Own dataset
 
         ## imu
-        self.imu = self.readIMU_File('/imu0/data.csv')
-        
+        self.imu = self.readIMU_File('/imu0/data.csv') # EuRoC MAV
+        #self.imu = self.readIMU_File('/imu/xsens-1597237222976.csv') #  Own dataset
+
         # Number of imu steps in one image step
         self.imu_seq_len = 5
     
@@ -193,7 +198,7 @@ class Vinet(nn.Module):
 def train(dataset_base_path):
 
     # Set training parameters
-    epoch = 100 # Number of epochs
+    epoch = 5 # Number of epochs
     batch = 1 # Does not work (yet) with bigger patch size
 
     # Initialize summary writer 
@@ -384,21 +389,25 @@ def test(dataset_base_path):
 def main():
     # Choose if you want to do model training or testing (ADD INFERENCE OPTION!!)
 
-    # Train options:
+    # Train options (EuRoC MAV):
     train(dataset_base_path = 'data/V1_01_easy/mav0')
-    train(dataset_base_path = 'data/V1_02_medium/mav0')
-    train(dataset_base_path = 'data/V1_03_difficult/mav0')
-    train(dataset_base_path = 'data/V2_01_easy/mav0')
-    train(dataset_base_path = 'data/V2_02_medium/mav0')
-    train(dataset_base_path = 'data/V2_03_difficult/mav0')
+    #train(dataset_base_path = 'data/V1_02_medium/mav0')
+    #train(dataset_base_path = 'data/V1_03_difficult/mav0')
+    #train(dataset_base_path = 'data/V2_01_easy/mav0')
+    #train(dataset_base_path = 'data/V2_02_medium/mav0')
+    #train(dataset_base_path = 'data/V2_03_difficult/mav0')
 
-    # Test options:
+    # Test options (EuRoC MAV):
     #test(dataset_base_path = 'data/V1_01_easy/mav0')
     #test(dataset_base_path = 'data/V1_02_medium/mav0')
     #test(dataset_base_path = 'data/V1_03_difficult/mav0')
     #test(dataset_base_path = 'data/V2_01_easy/mav0')
     #test(dataset_base_path = 'data/V2_02_medium/mav0')
     #test(dataset_base_path = 'data/V2_03_difficult/mav0')
+
+    # Train and test (university of Helsinki dataset)
+    #train(dataset_base_path = 'data/hy-data')
+    #test(dataset_base_path = 'data/hy-data')
 
 if __name__ == '__main__':
     main()
