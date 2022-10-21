@@ -2,6 +2,9 @@
 
 > This is a non-official PyTorch implementation of VINet[1] forked from [https://github.com/HTLife/VINet](https://github.com/HTLife/VINet). Aim of this repository is to update version written by HTLife and improve the documentation. Project is under construction.
 
+# Hox!
+
+- The code works (no errors), but the model did not converge. You are welcome to continue this project.
 
 # Memo:
 
