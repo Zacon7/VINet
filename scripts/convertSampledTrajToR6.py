@@ -156,29 +156,26 @@ def _get_filenames_and_classes(dataset_dir):
                 
 
 def main():
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_01_easy')
-    #_get_filenames_and_classes('/notebooks/EuRoC_modify/V1_02_medium')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V1_03_difficult')
-    #_get_filenames_and_classes('/notebooks/EuRoC_modify/V2_01_easy')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_02_medium')
-    #_get_filenames_and_classes('/media/rvl/hddData1/dockerData/euroc/V2_03_difficult')
-    print("\nStart process V1_01_easy")
-    _get_filenames_and_classes('../../data/V1_01_easy/mav0')
+    #print("\nStart process V1_01_easy")
+    #_get_filenames_and_classes('../../data/V1_01_easy/mav0')
 
-    print("\nStart process V1_02_medium")
-    _get_filenames_and_classes('../../data/V1_02_medium/mav0')
+    #print("\nStart process V1_02_medium")
+    #_get_filenames_and_classes('../../data/V1_02_medium/mav0')
 
-    print("\nStart process V1_03_difficult")
-    _get_filenames_and_classes('../../data/V1_03_difficult/mav0')
+    #print("\nStart process V1_03_difficult")
+    #_get_filenames_and_classes('../../data/V1_03_difficult/mav0')
 
-    print("\nStart process V2_01_easy")
-    _get_filenames_and_classes('../../data/V2_01_easy/mav0')
+    #print("\nStart process V2_01_easy")
+    #_get_filenames_and_classes('../../data/V2_01_easy/mav0')
 
-    print("\nStart process V2_02_medium")
-    _get_filenames_and_classes('../../data/V2_02_medium/mav0')
+    #print("\nStart process V2_02_medium")
+    #_get_filenames_and_classes('../../data/V2_02_medium/mav0')
 
-    print("\nStart process V2_03_difficult")
-    _get_filenames_and_classes('../../data/V2_03_difficult/mav0')
+    #print("\nStart process V2_03_difficult")
+    #_get_filenames_and_classes('../../data/V2_03_difficult/mav0')
+
+    print("\nStart process HY data)
+    _get_filenames_and_classes('../../data/hy-data')
 
 if __name__ == "__main__":
     main()
