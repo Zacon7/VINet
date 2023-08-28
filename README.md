@@ -16,7 +16,7 @@
 ## 1. Clone this repository
 
 ```
-git clone https://github.com/Saukkoriipi/VINet.git
+git clone git@github.com:helsinki-sda-group/VINet.git
 ```
 
 ## 2. Install all required Python packages with command:
