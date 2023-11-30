@@ -46,10 +46,9 @@ def float_to_str(f):
 
 def _get_filenames_and_classes(dataset_dir):
     
-    
     trajectory_abs = []  #abosolute camera pose
-    #file_path = dataset_dir + '/vicon0/sampled.csv'
-    file_path = dataset_dir + '/reference/sampled.csv'
+    file_path = dataset_dir + '/vicon0/sampled.csv'
+    # file_path = dataset_dir + '/reference/sampled.csv'
 
     print("\nRead data from file:", file_path)
     with open(file_path) as csvfile:
@@ -77,16 +76,16 @@ def _get_filenames_and_classes(dataset_dir):
         relative_pose = [timestamp, X, Y, Z, relative_rot[0], relative_rot[1], relative_rot[2], relative_rot[3]]
         trajectory_relative.append(relative_pose)
         
-    #file_path = dataset_dir + '/vicon0/sampled_relative.csv'
-    file_path = dataset_dir + '/reference/sampled_relative.csv'
+    file_path = dataset_dir + '/vicon0/sampled_relative.csv'
+    # file_path = dataset_dir + '/reference/sampled_relative.csv'
     print("Write to file:", file_path)
     print("Number of rows written:", len(trajectory_relative))
     with open(file_path, 'w+') as f:
-        tmpStr = ",".join(trajectory_abs[0])
-        f.write(tmpStr + '\n')        
+        line_str = ",".join(trajectory_abs[0])
+        f.write(line_str + '\n')        
         for i in range(len(trajectory_relative)):
-            #tmpStr = ",".join(np.array(trajectory_relative[i]).astype(str))
-            tmpStr = trajectory_relative[i][0] + ',' +\
+            # line_str = ",".join(np.array(trajectory_relative[i]).astype(str))
+            line_str = trajectory_relative[i][0] + ',' +\
                      float_to_str(trajectory_relative[i][1]) + ',' +\
                      float_to_str(trajectory_relative[i][2]) + ',' +\
                      float_to_str(trajectory_relative[i][3]) + ',' +\
@@ -94,21 +93,21 @@ def _get_filenames_and_classes(dataset_dir):
                      float_to_str(trajectory_relative[i][5]) + ',' +\
                      float_to_str(trajectory_relative[i][6]) + ',' +\
                      float_to_str(trajectory_relative[i][7])
-            f.write(tmpStr + '\n')        
+            f.write(line_str + '\n')        
     f.close()
             
     return
                 
 
 def main():
-    #_get_filenames_and_classes('../../data/V1_01_easy/mav0')
-    #_get_filenames_and_classes('../../data/V1_02_medium/mav0')
-    #_get_filenames_and_classes('../../data/V1_03_difficult/mav0')
-    #_get_filenames_and_classes('../../data/V2_01_easy/mav0')
-    #_get_filenames_and_classes('../../data/V2_02_medium/mav0')
-    #_get_filenames_and_classes('../../data/V2_03_difficult/mav0')
+    _get_filenames_and_classes('data/V1_01_easy/mav0')
+    #_get_filenames_and_classes('data/V1_02_medium/mav0')
+    #_get_filenames_and_classes('data/V1_03_difficult/mav0')
+    #_get_filenames_and_classes('data/V2_01_easy/mav0')
+    #_get_filenames_and_classes('data/V2_02_medium/mav0')
+    #_get_filenames_and_classes('data/V2_03_difficult/mav0')
 
-    _get_filenames_and_classes('../data/hy-data')
+    #_get_filenames_and_classes('data/hy-data')
        
 
 if __name__ == "__main__":

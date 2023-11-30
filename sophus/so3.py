@@ -30,7 +30,9 @@ class So3:
     def log(self):
         """ logarithmic map"""
         n = sympy.sqrt(squared_norm(self.q.vec))
-        return 2 * sympy.atan(n / self.q.real) / n * self.q.vec
+        if abs(n) > 1e-6:
+            return 2 * sympy.atan(n / self.q.real) / n * self.q.vec
+        return sympy.zeros(3, 1)
 
     def calc_Dx_log_this(self):
         return sympy.Matrix(3, 3, lambda r, c: sympy.diff(self.log()[r],

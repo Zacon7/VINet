@@ -50,9 +50,11 @@ class Se3:
 
         half_theta = 0.5 * theta
 
-        V_inv = sympy.Matrix.eye(3) - 0.5 * Omega + (1 - theta * sympy.cos(
-            half_theta) / (2 * sympy.sin(half_theta))) / (theta * theta) *\
-            (Omega * Omega)
+        V_inv = sympy.zeros(3, 3)
+        if abs((theta * theta)) > 1e-6:
+            V_inv = sympy.Matrix.eye(3) - 0.5 * Omega + (1 - theta * sympy.cos(
+                half_theta) / (2 * sympy.sin(half_theta))) / (theta * theta) *\
+                (Omega * Omega)
         upsilon = V_inv * self.t
         return upsilon.col_join(omega)
 
