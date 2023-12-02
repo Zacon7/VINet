@@ -1,8 +1,9 @@
 import torch
 import os
 
+
 def check_my_gpu():
-    """ Check if system has GPU available and print possible GPU details."""
+    """Check if system has GPU available and print possible GPU details."""
     gpu_available = torch.cuda.is_available()
     if gpu_available:
         print("\nGPU found!")
@@ -16,7 +17,7 @@ def check_my_gpu():
 
 
 def check_my_cpu():
-    """ Check number of CPUs in partition and how many you are booking."""
+    """Check number of CPUs in partition and how many you are booking."""
     print("\nTotal number of CPU cores found: {}".format(os.cpu_count()))
     print("You are booking {} CPU cores.".format(len(os.sched_getaffinity(0))))
 
@@ -24,6 +25,7 @@ def check_my_cpu():
 def main():
     check_my_cpu()
     check_my_gpu()
+
 
 if __name__ == "__main__":
     main()
